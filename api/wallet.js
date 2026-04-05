@@ -37,12 +37,12 @@ async function rpcCall(method, params) {
   });
 
   if (!response.ok) {
-    throw new Error(`Abstract RPC hatasi: HTTP ${response.status}`);
+    throw new Error(`Abstract RPC error: HTTP ${response.status}`);
   }
 
   const payload = await response.json();
   if (payload.error) {
-    throw new Error(payload.error.message || "Abstract RPC gecersiz yanit dondu.");
+    throw new Error(payload.error.message || "Invalid Abstract RPC response.");
   }
 
   return payload.result;
@@ -63,7 +63,7 @@ async function getWalletCoreMetrics(address) {
 
 async function fetchExplorerTransactions(address, options = {}) {
   if (!ETHERSCAN_API_KEY) {
-    throw new Error("ETHERSCAN_API_KEY tanimlanmamis. Vercel environment variables icine eklenmeli.");
+    throw new Error("ETHERSCAN_API_KEY is missing. Add it in Vercel Environment Variables.");
   }
 
   const url = new URL(ETHERSCAN_API_BASE);
@@ -80,20 +80,21 @@ async function fetchExplorerTransactions(address, options = {}) {
 
   const response = await fetch(url.toString());
   if (!response.ok) {
-    throw new Error(`Explorer hatasi: HTTP ${response.status}`);
+    throw new Error(`Explorer error: HTTP ${response.status}`);
   }
 
   const payload = await response.json();
+
   if (payload.status === "0") {
     if (payload.message === "No transactions found") {
       return [];
     }
 
-    throw new Error(payload.result || "Explorer gecersiz yanit dondu.");
+    throw new Error(payload.result || "Invalid explorer response.");
   }
 
   if (!Array.isArray(payload.result)) {
-    throw new Error("Explorer sonuc formati beklenen dizide degil.");
+    throw new Error("Explorer result format is invalid.");
   }
 
   return payload.result;
@@ -106,6 +107,7 @@ function buildEmptyChart(days) {
   for (let index = days - 1; index >= 0; index -= 1) {
     const pointDate = new Date(now.getTime() - index * DAY_IN_MS);
     const isoDate = pointDate.toISOString().slice(0, 10);
+
     points.push({
       date: isoDate,
       label: isoDate.slice(5),
@@ -121,7 +123,7 @@ function calculateWalletAge(firstTransactionAt, nowMs) {
   if (!firstTransactionAt) {
     return {
       walletAgeDays: null,
-      walletAgeText: "Islem gecmisi bulunamadi"
+      walletAgeText: "No transaction history found"
     };
   }
 
@@ -132,21 +134,21 @@ function calculateWalletAge(firstTransactionAt, nowMs) {
     const hours = Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)));
     return {
       walletAgeDays,
-      walletAgeText: `${hours} saat`
+      walletAgeText: `${hours} hours`
     };
   }
 
   if (walletAgeDays < 30) {
     return {
       walletAgeDays,
-      walletAgeText: `${Math.floor(walletAgeDays)} gun`
+      walletAgeText: `${Math.floor(walletAgeDays)} days`
     };
   }
 
   const months = walletAgeDays / 30.4375;
   return {
     walletAgeDays,
-    walletAgeText: `${months.toFixed(1)} ay`
+    walletAgeText: `${months.toFixed(1)} months`
   };
 }
 
@@ -198,12 +200,15 @@ async function getTransactionWindowMetrics(address) {
       if (timestamp >= cutoff24h) {
         tx24h += 1;
       }
+
       if (timestamp >= cutoff7d) {
         tx7d += 1;
       }
+
       if (timestamp >= cutoff30d) {
         tx30d += 1;
         const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
+
         if (chartLookup.has(isoDate)) {
           chartLookup.get(isoDate).count += 1;
         }
@@ -229,12 +234,13 @@ async function getTransactionWindowMetrics(address) {
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
-    return sendJson(res, 405, { error: "Sadece GET istekleri desteklenir." });
+    return sendJson(res, 405, { error: "Only GET requests are supported." });
   }
 
   const address = String(req.query.address || "").trim();
+
   if (!isValidAddress(address)) {
-    return sendJson(res, 400, { error: "Gecerli bir EVM wallet adresi gonder." });
+    return sendJson(res, 400, { error: "Please provide a valid EVM wallet address." });
   }
 
   try {
@@ -247,7 +253,9 @@ export default async function handler(req, res) {
     const firstTransactionAt = firstTransaction
       ? new Date(Number(firstTransaction.timeStamp) * 1000).toISOString()
       : null;
+
     const ageMetrics = calculateWalletAge(firstTransactionAt, Date.now());
+
     const averageDailyTx = ageMetrics.walletAgeDays && ageMetrics.walletAgeDays > 0
       ? Number((coreMetrics.allTimeTx / ageMetrics.walletAgeDays).toFixed(2))
       : coreMetrics.allTimeTx > 0 ? coreMetrics.allTimeTx : 0;
@@ -256,8 +264,7 @@ export default async function handler(req, res) {
       walletAddress: address,
       network: {
         name: "Abstract Mainnet",
-        chainId: CHAIN_ID,
-        rpcUrl: ABSTRACT_RPC_URL
+        chainId: CHAIN_ID
       },
       balance: {
         wei: coreMetrics.balanceWei,
@@ -279,9 +286,7 @@ export default async function handler(req, res) {
       }
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Beklenmeyen bir hata olustu.";
-    return sendJson(res, 500, {
-      error: message
-    });
+    const message = error instanceof Error ? error.message : "Unexpected server error.";
+    return sendJson(res, 500, { error: message });
   }
 }
