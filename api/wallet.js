@@ -3,9 +3,11 @@ const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const CHAIN_ID = 2741;
 const PAGE_SIZE = 100;
-const MAX_PAGES = 200;
+const MAX_PAGES = 60;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
+const RATE_LIMIT_DELAY_MS = 450;
+const RATE_LIMIT_RETRY_COUNT = 4;
 
 function sendJson(res, statusCode, payload) {
   res.status(statusCode).json(payload);
@@ -13,6 +15,10 @@ function sendJson(res, statusCode, payload) {
 
 function isValidAddress(address) {
   return /^0x[a-fA-F0-9]{40}$/.test(address || "");
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function formatEther(weiHex) {
@@ -61,9 +67,17 @@ async function getWalletCoreMetrics(address) {
   };
 }
 
-async function fetchExplorerTransactions(address, options = {}) {
+function isRateLimitMessage(text) {
+  return /rate limit|max calls per sec|too many request/i.test(text || "");
+}
+
+async function fetchExplorerTransactions(address, options = {}, attempt = 0) {
   if (!ETHERSCAN_API_KEY) {
     throw new Error("ETHERSCAN_API_KEY is missing. Add it in Vercel Environment Variables.");
+  }
+
+  if (attempt > 0) {
+    await sleep(RATE_LIMIT_DELAY_MS * attempt);
   }
 
   const url = new URL(ETHERSCAN_API_BASE);
@@ -90,13 +104,20 @@ async function fetchExplorerTransactions(address, options = {}) {
       return [];
     }
 
-    throw new Error(payload.result || "Invalid explorer response.");
+    const reason = typeof payload.result === "string" ? payload.result : payload.message;
+    if (isRateLimitMessage(reason) && attempt < RATE_LIMIT_RETRY_COUNT) {
+      await sleep(RATE_LIMIT_DELAY_MS * (attempt + 1));
+      return fetchExplorerTransactions(address, options, attempt + 1);
+    }
+
+    throw new Error(reason || "Invalid explorer response.");
   }
 
   if (!Array.isArray(payload.result)) {
     throw new Error("Explorer result format is invalid.");
   }
 
+  await sleep(RATE_LIMIT_DELAY_MS);
   return payload.result;
 }
 
@@ -197,18 +218,12 @@ async function getTransactionWindowMetrics(address) {
         continue;
       }
 
-      if (timestamp >= cutoff24h) {
-        tx24h += 1;
-      }
-
-      if (timestamp >= cutoff7d) {
-        tx7d += 1;
-      }
+      if (timestamp >= cutoff24h) tx24h += 1;
+      if (timestamp >= cutoff7d) tx7d += 1;
 
       if (timestamp >= cutoff30d) {
         tx30d += 1;
         const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
-
         if (chartLookup.has(isoDate)) {
           chartLookup.get(isoDate).count += 1;
         }
@@ -238,7 +253,6 @@ export default async function handler(req, res) {
   }
 
   const address = String(req.query.address || "").trim();
-
   if (!isValidAddress(address)) {
     return sendJson(res, 400, { error: "Please provide a valid EVM wallet address." });
   }
@@ -255,7 +269,6 @@ export default async function handler(req, res) {
       : null;
 
     const ageMetrics = calculateWalletAge(firstTransactionAt, Date.now());
-
     const averageDailyTx = ageMetrics.walletAgeDays && ageMetrics.walletAgeDays > 0
       ? Number((coreMetrics.allTimeTx / ageMetrics.walletAgeDays).toFixed(2))
       : coreMetrics.allTimeTx > 0 ? coreMetrics.allTimeTx : 0;
