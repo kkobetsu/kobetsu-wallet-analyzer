@@ -19,18 +19,29 @@
       "walletAgeText": "14.3 months"
     },
     "profile": {
-      "id": null,
+      "id": "71017",
       "name": "Kobetsu",
-      "description": "",
+      "description": "Null Space",
       "walletAddress": "0xC1E07504817D6fEd147FB503FD95966d2384ad8f",
-      "avatar": null,
-      "banner": null,
-      "tier": null,
-      "tierV2": null,
-      "hasCompletedWelcomeTour": false,
-      "hasStreamingAccess": false,
-      "overrideProfilePictureUrl": null,
-      "lastTierSeen": null,
+      "avatar": {
+        "assetType": "avatar",
+        "tier": 1,
+        "key": 3,
+        "season": 1
+      },
+      "banner": {
+        "assetType": "banner",
+        "tier": 1,
+        "key": 2,
+        "season": 1
+      },
+      "tier": 3,
+      "tierV2": 9,
+      "hasCompletedWelcomeTour": true,
+      "hasStreamingAccess": true,
+      "overrideProfilePictureUrl": "https://cdn.simplehash.com/assets/e6d55a01f939ceb3210da4cf19c524ee567a0bcae426853dc346f95b10e56b3b.png",
+      "lastTierSeen": 3,
+      "badgeCount": 43,
       "badges": []
     },
     "appSummary": {
