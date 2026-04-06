@@ -3,11 +3,10 @@ const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const CHAIN_ID = 2741;
 const PAGE_SIZE = 100;
-const MAX_PAGES = 60;
+const MAX_PAGES = 20;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
-const RATE_LIMIT_DELAY_MS = 450;
-const RATE_LIMIT_RETRY_COUNT = 4;
+const FETCH_TIMEOUT_MS = 12000;
 
 function sendJson(res, statusCode, payload) {
   res.status(statusCode).json(payload);
@@ -15,10 +14,6 @@ function sendJson(res, statusCode, payload) {
 
 function isValidAddress(address) {
   return /^0x[a-fA-F0-9]{40}$/.test(address || "");
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function formatEther(weiHex) {
@@ -30,8 +25,28 @@ function formatEther(weiHex) {
   return fractionText ? `${whole}.${fractionText}` : whole.toString();
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    return response;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("Request timed out while fetching explorer data.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function rpcCall(method, params) {
-  const response = await fetch(ABSTRACT_RPC_URL, {
+  const response = await fetchWithTimeout(ABSTRACT_RPC_URL, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -67,17 +82,9 @@ async function getWalletCoreMetrics(address) {
   };
 }
 
-function isRateLimitMessage(text) {
-  return /rate limit|max calls per sec|too many request/i.test(text || "");
-}
-
-async function fetchExplorerTransactions(address, options = {}, attempt = 0) {
+async function fetchExplorerTransactions(address, options = {}) {
   if (!ETHERSCAN_API_KEY) {
     throw new Error("ETHERSCAN_API_KEY is missing. Add it in Vercel Environment Variables.");
-  }
-
-  if (attempt > 0) {
-    await sleep(RATE_LIMIT_DELAY_MS * attempt);
   }
 
   const url = new URL(ETHERSCAN_API_BASE);
@@ -85,14 +92,15 @@ async function fetchExplorerTransactions(address, options = {}, attempt = 0) {
   url.searchParams.set("module", "account");
   url.searchParams.set("action", "txlist");
   url.searchParams.set("address", address);
-  url.searchParams.set("startblock", String(options.startblock || 0));
-  url.searchParams.set("endblock", String(options.endblock || 99999999));
+  url.searchParams.set("startblock", "0");
+  url.searchParams.set("endblock", "99999999");
   url.searchParams.set("page", String(options.page || 1));
   url.searchParams.set("offset", String(options.offset || PAGE_SIZE));
   url.searchParams.set("sort", options.sort || "desc");
   url.searchParams.set("apikey", ETHERSCAN_API_KEY);
 
-  const response = await fetch(url.toString());
+  const response = await fetchWithTimeout(url.toString());
+
   if (!response.ok) {
     throw new Error(`Explorer error: HTTP ${response.status}`);
   }
@@ -105,9 +113,9 @@ async function fetchExplorerTransactions(address, options = {}, attempt = 0) {
     }
 
     const reason = typeof payload.result === "string" ? payload.result : payload.message;
-    if (isRateLimitMessage(reason) && attempt < RATE_LIMIT_RETRY_COUNT) {
-      await sleep(RATE_LIMIT_DELAY_MS * (attempt + 1));
-      return fetchExplorerTransactions(address, options, attempt + 1);
+
+    if (/rate limit|max calls per sec|too many/i.test(reason || "")) {
+      throw new Error("Explorer rate limit reached. Wait a few seconds and try again.");
     }
 
     throw new Error(reason || "Invalid explorer response.");
@@ -117,7 +125,6 @@ async function fetchExplorerTransactions(address, options = {}, attempt = 0) {
     throw new Error("Explorer result format is invalid.");
   }
 
-  await sleep(RATE_LIMIT_DELAY_MS);
   return payload.result;
 }
 
@@ -214,9 +221,7 @@ async function getTransactionWindowMetrics(address) {
 
     for (const tx of batch) {
       const timestamp = Number(tx.timeStamp);
-      if (!Number.isFinite(timestamp)) {
-        continue;
-      }
+      if (!Number.isFinite(timestamp)) continue;
 
       if (timestamp >= cutoff24h) tx24h += 1;
       if (timestamp >= cutoff7d) tx7d += 1;
@@ -253,6 +258,7 @@ export default async function handler(req, res) {
   }
 
   const address = String(req.query.address || "").trim();
+
   if (!isValidAddress(address)) {
     return sendJson(res, 400, { error: "Please provide a valid EVM wallet address." });
   }
