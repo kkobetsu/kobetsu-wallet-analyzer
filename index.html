@@ -1,24 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kobetsu Abstract Search</title>
+  <title>Kobetsu Abstract Profile Search</title>
   <style>
     :root {
-      --bg: #f7fffb;
-      --panel: rgba(255, 255, 255, 0.88);
-      --panel-strong: rgba(255, 255, 255, 0.96);
-      --line: rgba(29, 213, 122, 0.12);
-      --line-strong: rgba(29, 213, 122, 0.28);
-      --text: #0c1915;
-      --muted: #60766e;
-      --green: #1ed57a;
-      --danger: #ff647e;
-      --shadow: 0 18px 60px rgba(14, 28, 22, 0.08);
+      --bg: #f6fff9;
+      --panel: rgba(255, 255, 255, 0.92);
+      --panel-strong: rgba(255, 255, 255, 0.98);
+      --line: rgba(33, 206, 122, 0.16);
+      --line-strong: rgba(33, 206, 122, 0.3);
+      --text: #122019;
+      --muted: #61776c;
+      --green: #21ce7a;
+      --green-strong: #12b768;
+      --shadow: 0 22px 64px rgba(16, 35, 26, 0.09);
+      --danger: #cb506b;
       --radius-xl: 30px;
       --radius-lg: 22px;
-      --max-width: 1160px;
+      --radius-md: 18px;
+      --max-width: 1180px;
     }
 
     * { box-sizing: border-box; }
@@ -26,109 +28,78 @@
     body {
       margin: 0;
       min-height: 100vh;
-      overflow-x: hidden;
       font-family: "Segoe UI", Arial, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at 10% 10%, rgba(30, 213, 122, 0.08), transparent 24%),
-        radial-gradient(circle at 90% 90%, rgba(30, 213, 122, 0.06), transparent 24%),
+        radial-gradient(circle at 0% 0%, rgba(33, 206, 122, 0.14), transparent 30%),
+        radial-gradient(circle at 100% 20%, rgba(33, 206, 122, 0.12), transparent 28%),
         linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
-    }
-
-    .background-glows {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .glow {
-      position: absolute;
-      width: 360px;
-      height: 360px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(30, 213, 122, 0.16), transparent 68%);
-      filter: blur(18px);
-      opacity: 0.85;
-      animation: pulseGlow 8s ease-in-out infinite;
-    }
-
-    .glow.g1 { top: -90px; left: -80px; }
-    .glow.g2 { right: -120px; top: 180px; animation-delay: 1.8s; }
-    .glow.g3 { left: 28%; bottom: -140px; animation-delay: 3.1s; }
-
-    @keyframes pulseGlow {
-      0%, 100% { transform: scale(0.96); opacity: 0.5; }
-      50% { transform: scale(1.08); opacity: 0.95; }
     }
 
     .page {
       position: relative;
-      z-index: 1;
       width: min(100% - 24px, var(--max-width));
       margin: 0 auto;
-      padding: 18px 0 60px;
+      padding: 18px 0 48px;
     }
 
     .top-lane {
       position: relative;
-      height: 98px;
-      margin-bottom: 12px;
+      height: 90px;
+      margin-bottom: 16px;
       overflow: hidden;
+      border: 1px solid rgba(33, 206, 122, 0.12);
       border-radius: 28px;
-      border: 1px solid rgba(29, 213, 122, 0.1);
-      background: rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.52);
       backdrop-filter: blur(10px);
     }
 
     .runner-wrap {
       position: absolute;
       inset: 0;
-      animation: laneMove 60s linear infinite;
+      animation: lane-move 60s linear infinite;
     }
 
     .runner-logo {
       position: absolute;
-      top: 18px;
+      top: 16px;
       left: 0;
-      width: 64px;
-      height: 64px;
+      width: 58px;
+      height: 58px;
       object-fit: contain;
-      filter: drop-shadow(0 0 18px rgba(30, 213, 122, 0.45));
-      animation: logoSpin 5s linear infinite;
+      animation: logo-spin 5s linear infinite;
+      filter: drop-shadow(0 0 16px rgba(33, 206, 122, 0.4));
     }
 
     .runner-dog {
       position: absolute;
-      top: 24px;
-      left: -88px;
-      width: 54px;
-      height: 54px;
+      top: 20px;
+      left: -78px;
+      width: 52px;
+      height: 52px;
       object-fit: contain;
       image-rendering: pixelated;
-      animation: dogBounce 0.8s ease-in-out infinite;
+      animation: dog-bounce 0.8s ease-in-out infinite;
     }
 
-    @keyframes laneMove {
+    @keyframes lane-move {
       from { transform: translateX(-140px); }
       to { transform: translateX(calc(100vw + 140px)); }
     }
 
-    @keyframes logoSpin {
+    @keyframes logo-spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
 
-    @keyframes dogBounce {
+    @keyframes dog-bounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-6px); }
     }
 
-    .search-card,
-    .result-card,
-    .apps-card,
-    .chart-card {
+    .search-shell,
+    .panel,
+    .badge-panel {
       border: 1px solid var(--line);
       border-radius: var(--radius-xl);
       background: var(--panel);
@@ -136,32 +107,33 @@
       box-shadow: var(--shadow);
     }
 
-    .search-card { padding: 18px; }
+    .search-shell {
+      padding: 18px;
+    }
 
     .search-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) 190px;
+      gap: 14px;
       align-items: center;
     }
 
-    .search-input-wrap {
+    .input-wrap {
       display: flex;
       align-items: center;
       gap: 14px;
-      height: 76px;
+      height: 78px;
       padding: 0 18px;
-      border-radius: 24px;
+      border-radius: 26px;
       border: 1px solid var(--line-strong);
       background: var(--panel-strong);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 30px rgba(18, 191, 103, 0.05);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
     }
 
-    .search-input-wrap img {
-      width: 38px;
-      height: 38px;
+    .input-wrap img {
+      width: 34px;
+      height: 34px;
       object-fit: contain;
-      filter: drop-shadow(0 0 16px rgba(30, 213, 122, 0.32));
       flex: 0 0 auto;
     }
 
@@ -170,39 +142,48 @@
       border: none;
       outline: none;
       background: transparent;
+      font-size: 18px;
+      font-weight: 800;
       color: var(--text);
-      font-size: 19px;
-      font-weight: 700;
     }
 
-    input::placeholder { color: #91a59f; font-weight: 600; }
+    input::placeholder {
+      color: #8ba398;
+      font-weight: 600;
+    }
 
     button {
       appearance: none;
       border: none;
       cursor: pointer;
-      height: 76px;
-      padding: 0 28px;
-      border-radius: 24px;
+      height: 78px;
+      border-radius: 26px;
       font-size: 16px;
-      font-weight: 800;
+      font-weight: 900;
       transition: transform 160ms ease, filter 160ms ease, opacity 160ms ease;
     }
 
-    button:hover { transform: translateY(-1px); filter: brightness(1.03); }
-    button:disabled { opacity: 0.65; cursor: wait; transform: none; }
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+      transform: none;
+    }
 
     .primary-button {
-      min-width: 160px;
       color: #062014;
-      background: linear-gradient(135deg, #8ef8be 0%, #45df8c 52%, #11be66 100%);
-      box-shadow: 0 12px 28px rgba(17, 190, 102, 0.22);
+      background: linear-gradient(135deg, #95f7be 0%, #46e08d 55%, #11bb66 100%);
+      box-shadow: 0 12px 28px rgba(17, 187, 102, 0.22);
     }
 
     .status {
       display: none;
       margin-top: 14px;
-      padding: 15px 18px;
+      padding: 14px 16px;
       border-radius: 18px;
       border: 1px solid transparent;
       font-size: 14px;
@@ -212,135 +193,161 @@
     .status.visible { display: block; }
     .status.loading {
       color: #2d5a49;
-      background: rgba(245, 255, 249, 0.95);
-      border-color: rgba(29, 213, 122, 0.14);
+      background: rgba(244, 255, 248, 0.96);
+      border-color: rgba(33, 206, 122, 0.16);
     }
     .status.success {
       color: #1e5a39;
-      background: rgba(243, 255, 248, 0.95);
-      border-color: rgba(29, 213, 122, 0.2);
+      background: rgba(243, 255, 248, 0.96);
+      border-color: rgba(33, 206, 122, 0.2);
     }
     .status.error {
-      color: #8d3345;
-      background: rgba(255, 246, 248, 0.95);
-      border-color: rgba(255, 100, 126, 0.18);
+      color: var(--danger);
+      background: rgba(255, 246, 248, 0.96);
+      border-color: rgba(203, 80, 107, 0.18);
     }
 
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-
-    .tab {
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(29, 213, 122, 0.14);
-      background: rgba(255, 255, 255, 0.82);
-      color: #42665a;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .tab.active {
-      border-color: rgba(29, 213, 122, 0.28);
-      background: rgba(232, 255, 242, 0.98);
-      color: #167546;
-      box-shadow: 0 0 0 1px rgba(29, 213, 122, 0.12) inset;
-    }
-
-    .result-card,
-    .apps-card,
-    .chart-card {
-      display: none;
-      margin-top: 18px;
-      padding: 18px;
-    }
-
-    .result-card.visible,
-    .apps-card.visible,
-    .chart-card.visible {
-      display: block;
-    }
-
-    .result-grid {
+    .layout {
       display: grid;
-      gap: 14px;
-      grid-template-columns: 220px repeat(3, minmax(0, 1fr));
-      align-items: stretch;
-    }
-
-    .profile-card,
-    .metric-card {
-      border: 1px solid rgba(29, 213, 122, 0.12);
-      border-radius: var(--radius-lg);
-      background: rgba(255, 255, 255, 0.85);
-      min-height: 210px;
+      gap: 18px;
+      margin-top: 18px;
     }
 
     .profile-card {
-      padding: 18px;
-      display: grid;
-      gap: 14px;
-      align-content: start;
-      justify-items: start;
+      display: none;
+      overflow: hidden;
+    }
+
+    .profile-card.visible {
+      display: block;
+    }
+
+    .profile-banner {
+      position: relative;
+      min-height: 180px;
+      padding: 24px;
+      background:
+        linear-gradient(135deg, rgba(33, 206, 122, 0.2), rgba(33, 206, 122, 0.04)),
+        linear-gradient(180deg, rgba(20, 33, 25, 0.08), rgba(20, 33, 25, 0));
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: end;
+    }
+
+    .profile-banner::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: var(--banner-image);
+      background-size: cover;
+      background-position: center;
+      opacity: 0.16;
+      pointer-events: none;
+    }
+
+    .profile-banner-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: end;
+      gap: 18px;
+      flex-wrap: wrap;
     }
 
     .avatar {
-      width: 84px;
-      height: 84px;
+      width: 102px;
+      height: 102px;
       padding: 4px;
-      border-radius: 26px;
-      background: linear-gradient(135deg, #8ef8be, #52eca0);
-      box-shadow: 0 10px 22px rgba(29, 213, 122, 0.16);
+      border-radius: 28px;
+      background: linear-gradient(135deg, #95f7be, #46e08d);
+      box-shadow: 0 12px 28px rgba(33, 206, 122, 0.18);
     }
 
     .avatar img {
       width: 100%;
       height: 100%;
-      display: block;
-      object-fit: contain;
-      border-radius: 22px;
-      image-rendering: pixelated;
-      background: transparent;
+      object-fit: cover;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.96);
+    }
+
+    .profile-copy {
+      display: grid;
+      gap: 8px;
     }
 
     .profile-name {
-      font-size: 22px;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
       font-weight: 900;
-      letter-spacing: -0.04em;
-      line-height: 1;
-      word-break: break-word;
+    }
+
+    .profile-description {
+      color: #3f5e51;
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 700px;
     }
 
     .profile-wallet {
-      color: var(--muted);
+      color: #5c776b;
       font-size: 14px;
-      line-height: 1.5;
-      word-break: break-all;
+      font-weight: 700;
+      word-break: break-word;
     }
 
-    .profile-tier {
-      color: #17904f;
-      font-size: 20px;
+    .profile-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 220px repeat(3, minmax(0, 1fr));
+      padding: 18px;
+    }
+
+    .profile-side,
+    .metric-card {
+      border: 1px solid rgba(33, 206, 122, 0.12);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.84);
+      min-height: 210px;
+    }
+
+    .profile-side {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .tier-chip {
+      display: inline-flex;
+      width: fit-content;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(239, 255, 245, 0.96);
+      border: 1px solid rgba(33, 206, 122, 0.18);
+      color: #15834b;
+      font-size: 14px;
       font-weight: 900;
-      letter-spacing: 0.08em;
       text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .profile-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
     }
 
     .portal-link {
       display: inline-flex;
+      width: fit-content;
       align-items: center;
       gap: 8px;
       padding: 12px 16px;
       border-radius: 16px;
-      border: 1px solid rgba(29, 213, 122, 0.16);
-      background: rgba(240, 255, 247, 0.96);
+      border: 1px solid rgba(33, 206, 122, 0.16);
+      background: rgba(241, 255, 247, 0.96);
       color: #13814a;
       font-size: 14px;
       font-weight: 800;
@@ -351,8 +358,10 @@
       padding: 20px;
       display: grid;
       align-content: space-between;
-      gap: 16px;
-      background: radial-gradient(circle at center, rgba(29, 213, 122, 0.1), transparent 64%), rgba(255, 255, 255, 0.88);
+      gap: 14px;
+      background:
+        radial-gradient(circle at center, rgba(33, 206, 122, 0.1), transparent 64%),
+        rgba(255, 255, 255, 0.88);
     }
 
     .metric-label {
@@ -364,37 +373,53 @@
     }
 
     .metric-value {
-      font-size: clamp(34px, 4vw, 72px);
+      font-size: clamp(30px, 4vw, 70px);
       line-height: 0.95;
       letter-spacing: -0.06em;
       font-weight: 900;
       color: #19d37a;
-      text-shadow: 0 0 22px rgba(29, 213, 122, 0.18);
+      text-shadow: 0 0 22px rgba(33, 206, 122, 0.16);
       word-break: break-word;
     }
 
     .metric-foot {
-      color: #7a938b;
-      font-size: 14px;
-      line-height: 1.5;
       display: flex;
       justify-content: space-between;
       gap: 10px;
-      align-items: end;
+      color: #7a938b;
+      font-size: 14px;
+      line-height: 1.5;
     }
 
-    .apps-card { padding: 0; overflow: hidden; }
+    .metrics-grid {
+      display: none;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
 
-    .apps-head {
+    .metrics-grid.visible {
+      display: grid;
+    }
+
+    .badge-panel {
+      display: none;
+      overflow: hidden;
+    }
+
+    .badge-panel.visible {
+      display: block;
+    }
+
+    .badge-head {
       display: flex;
       justify-content: space-between;
       gap: 12px;
       align-items: center;
       padding: 18px;
-      border-bottom: 1px solid rgba(29, 213, 122, 0.1);
+      border-bottom: 1px solid var(--line);
     }
 
-    .apps-title {
+    .badge-title {
       font-size: 14px;
       font-weight: 900;
       letter-spacing: 0.12em;
@@ -402,261 +427,282 @@
       color: #40685a;
     }
 
-    .apps-count {
+    .badge-count {
       padding: 8px 12px;
       border-radius: 999px;
       background: rgba(237, 255, 245, 0.96);
-      border: 1px solid rgba(29, 213, 122, 0.16);
+      border: 1px solid rgba(33, 206, 122, 0.16);
       color: #14844c;
       font-size: 13px;
       font-weight: 900;
     }
 
-    .apps-list { display: grid; }
-
-    .app-row {
+    .badge-grid {
       display: grid;
-      grid-template-columns: 46px minmax(0, 1fr) minmax(180px, 240px);
       gap: 14px;
-      align-items: center;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       padding: 18px;
-      border-top: 1px solid rgba(29, 213, 122, 0.08);
     }
 
-    .app-rank {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      background: rgba(240, 255, 247, 0.96);
-      color: #169252;
-      font-size: 14px;
-      font-weight: 900;
-    }
-
-    .app-name {
-      font-size: 16px;
-      font-weight: 900;
-      color: #13241d;
-      margin-bottom: 4px;
-    }
-
-    .app-sub {
-      color: #6c847c;
-      font-size: 13px;
-      line-height: 1.5;
-      word-break: break-word;
-    }
-
-    .app-stats {
-      display: grid;
-      gap: 8px;
-      justify-items: end;
-    }
-
-    .bar {
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(29, 213, 122, 0.12);
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #37de86, #17c56c);
-    }
-
-    .app-tx {
-      color: #15914f;
-      font-size: 14px;
-      font-weight: 900;
-    }
-
-    .chart { display: flex; align-items: end; gap: 10px; min-height: 220px; }
-
-    .chart-bar {
-      flex: 1;
-      min-width: 0;
+    .badge-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(33, 206, 122, 0.1);
+      background: rgba(255, 255, 255, 0.88);
       display: grid;
       gap: 10px;
-      justify-items: center;
+      align-content: start;
     }
 
-    .chart-value {
-      min-height: 14px;
-      color: #5a7d70;
+    .badge-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .badge-name {
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.15;
+      color: #102219;
+    }
+
+    .badge-type {
+      padding: 6px 10px;
+      border-radius: 999px;
       font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(241, 255, 247, 0.96);
+      border: 1px solid rgba(33, 206, 122, 0.14);
+      color: #14844c;
+      white-space: nowrap;
     }
 
-    .chart-column {
-      width: 100%;
-      min-height: 4px;
-      border-radius: 999px 999px 14px 14px;
-      background: linear-gradient(180deg, #8ff8be 0%, #45df8c 50%, #12bf67 100%);
-      box-shadow: inset 0 -8px 18px rgba(18, 191, 103, 0.16);
+    .badge-description,
+    .badge-requirement {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
     }
 
-    .chart-label {
-      color: #7b968d;
-      font-size: 11px;
-      letter-spacing: 0.06em;
+    .badge-requirement strong {
+      color: #20362b;
+    }
+
+    .badge-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-top: auto;
+      color: #688076;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .claim-chip {
+      color: #13814a;
+    }
+
+    .empty-note {
+      display: none;
+      padding: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .empty-note.visible {
+      display: block;
     }
 
     @media (max-width: 980px) {
-      .result-grid { grid-template-columns: 1fr; }
-      .app-row { grid-template-columns: 46px minmax(0, 1fr); }
-      .app-stats { justify-items: start; }
+      .profile-grid,
+      .metrics-grid,
+      .badge-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 720px) {
-      .search-row { grid-template-columns: 1fr; }
+      .search-row {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 640px) {
-      .page { width: min(100% - 16px, var(--max-width)); padding-top: 12px; }
-      .search-card, .result-card, .chart-card { padding: 14px; }
-      .metric-foot, .apps-head { flex-direction: column; align-items: flex-start; }
+      .page {
+        width: min(100% - 16px, var(--max-width));
+        padding-top: 12px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="background-glows" aria-hidden="true">
-    <div class="glow g1"></div>
-    <div class="glow g2"></div>
-    <div class="glow g3"></div>
-  </div>
-
   <main class="page">
     <div class="top-lane">
       <div class="runner-wrap">
-        <img class="runner-logo" src="./assets/abstract-glow.png" alt="Abstract glow" />
+        <img class="runner-logo" src="./assets/abstract-logo.jpg" alt="Abstract logo" />
         <img class="runner-dog" src="./assets/kobetsu-pfp.png" alt="Kobetsu dog" />
       </div>
     </div>
 
-    <section class="search-card">
-      <form id="wallet-form">
+    <section class="search-shell">
+      <form id="search-form">
         <div class="search-row">
-          <div class="search-input-wrap">
-            <input id="wallet-address" name="address" type="text" placeholder="wallet address" autocomplete="off" spellcheck="false" />
-            <img src="./assets/abstract-glow.png" alt="Abstract" />
+          <div class="input-wrap">
+            <input id="query-input" type="text" placeholder="wallet veya nickname" autocomplete="off" spellcheck="false" />
+            <img src="./assets/abstract-logo.jpg" alt="Abstract" />
           </div>
           <button class="primary-button" id="submit-button" type="submit">Search</button>
         </div>
       </form>
-
-      <div class="toolbar">
-        <div class="tab" data-range="24h">24H</div>
-        <div class="tab active" data-range="7d">7D</div>
-        <div class="tab" data-range="30d">1M</div>
-        <div class="tab" data-range="all">All Time</div>
-      </div>
-
       <div id="status" class="status" role="status" aria-live="polite"></div>
     </section>
 
-    <section id="result" class="result-card">
-      <div class="result-grid">
-        <article class="profile-card">
+    <section id="profile-card" class="panel profile-card">
+      <div class="profile-banner" id="profile-banner">
+        <div class="profile-banner-content">
           <div class="avatar">
-            <img src="./assets/kobetsu-pfp.png" alt="Profile" />
+            <img id="profile-avatar" src="./assets/kobetsu-pfp.png" alt="Avatar" />
           </div>
-          <div class="profile-name" id="profile-name">Unknown</div>
-          <div class="profile-wallet" id="wallet-value">-</div>
-          <div class="profile-tier" id="profile-tier">Tier unavailable</div>
-          <a class="portal-link" href="https://portal.abs.xyz/" target="_blank" rel="noreferrer">Portal</a>
-        </article>
+          <div class="profile-copy">
+            <div class="profile-name" id="profile-name">Unknown</div>
+            <div class="profile-description" id="profile-description">Profil aciklamasi burada gorunecek.</div>
+            <div class="profile-wallet" id="profile-wallet">-</div>
+          </div>
+        </div>
+      </div>
 
-        <article class="metric-card">
-          <div class="metric-label">Transactions</div>
-          <div class="metric-value" id="transactions-value">-</div>
-          <div class="metric-foot">
-            <span id="transactions-foot">7 Days</span>
-            <span id="all-time-foot">All-time TX: -</span>
+      <div class="profile-grid">
+        <article class="profile-side">
+          <div class="tier-chip" id="tier-chip">Tier -</div>
+          <div class="profile-meta" id="profile-meta">
+            Avatar, banner, badge ve tier verisi profile kaynagindan gelecek.
           </div>
+          <a class="portal-link" id="portal-link" href="https://portal.abs.xyz/profile" target="_blank" rel="noreferrer">Portal</a>
         </article>
 
         <article class="metric-card">
           <div class="metric-label">Badges</div>
-          <div class="metric-value" id="badges-value">-</div>
+          <div class="metric-value" id="badge-count">-</div>
           <div class="metric-foot">
-            <span>Total</span>
-            <span id="badges-foot">Not connected</span>
+            <span>Claimed</span>
+            <span id="badge-foot">0 badge</span>
           </div>
         </article>
 
         <article class="metric-card">
-          <div class="metric-label">Most Used</div>
-          <div class="metric-value" id="most-used-value">-</div>
+          <div class="metric-label">Tier V2</div>
+          <div class="metric-value" id="tier-v2-value">-</div>
           <div class="metric-foot">
-            <span id="most-used-foot">7 Days</span>
-            <span id="apps-total-foot">0 dApp</span>
+            <span>Portal</span>
+            <span id="streaming-foot">Streaming: -</span>
+          </div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-label">Profile Assets</div>
+          <div class="metric-value" id="asset-summary">-</div>
+          <div class="metric-foot">
+            <span id="avatar-foot">Avatar: -</span>
+            <span id="banner-foot">Banner: -</span>
           </div>
         </article>
       </div>
-
-      <div style="display:grid;gap:12px;margin-top:16px;grid-template-columns:1fr 1fr;">
-        <div style="padding:18px;border-radius:22px;border:1px solid rgba(29,213,122,0.12);background:rgba(255,255,255,0.84);">
-          <div class="metric-label">Balance</div>
-          <div class="metric-value" id="balance-value" style="font-size:34px;">-</div>
-          <div style="margin-top:10px;color:var(--muted);font-size:13px;" id="balance-note">-</div>
-        </div>
-        <div style="padding:18px;border-radius:22px;border:1px solid rgba(29,213,122,0.12);background:rgba(255,255,255,0.84);">
-          <div class="metric-label">Wallet age</div>
-          <div class="metric-value" id="age-value" style="font-size:34px;">-</div>
-          <div style="margin-top:10px;color:var(--muted);font-size:13px;" id="age-note">-</div>
-        </div>
-      </div>
     </section>
 
-    <section id="apps-card" class="apps-card">
-      <div class="apps-head">
-        <div class="apps-title">Apps interacted with</div>
-        <div class="apps-count" id="apps-count">0 dApp</div>
-      </div>
-      <div class="apps-list" id="apps-list"></div>
+    <section id="metrics-grid" class="metrics-grid">
+      <article class="metric-card">
+        <div class="metric-label">Transactions</div>
+        <div class="metric-value" id="tx-value">-</div>
+        <div class="metric-foot">
+          <span>Local dataset</span>
+          <span id="tx-foot">All-time</span>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-label">Balance</div>
+        <div class="metric-value" id="balance-value">-</div>
+        <div class="metric-foot">
+          <span>Abstract</span>
+          <span id="balance-foot">ETH</span>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-label">Wallet Age</div>
+        <div class="metric-value" id="age-value">-</div>
+        <div class="metric-foot">
+          <span>First TX</span>
+          <span id="first-tx-foot">-</span>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-label">Most Used</div>
+        <div class="metric-value" id="most-used-value">-</div>
+        <div class="metric-foot">
+          <span>App summary</span>
+          <span id="most-used-foot">-</span>
+        </div>
+      </article>
     </section>
 
-    <section id="chart-card" class="chart-card">
-      <div id="chart" class="chart"></div>
+    <section id="badge-panel" class="badge-panel">
+      <div class="badge-head">
+        <div class="badge-title">Badge List</div>
+        <div class="badge-count" id="badge-list-count">0 badge</div>
+      </div>
+      <div id="badge-grid" class="badge-grid"></div>
+      <div id="empty-note" class="empty-note">
+        Bu profile icin badge bilgisi bulunamadi.
+      </div>
     </section>
   </main>
 
   <script>
-    const form = document.getElementById("wallet-form");
-    const addressInput = document.getElementById("wallet-address");
-    const statusBox = document.getElementById("status");
-    const resultSection = document.getElementById("result");
-    const appsCard = document.getElementById("apps-card");
-    const chartCard = document.getElementById("chart-card");
+    const form = document.getElementById("search-form");
+    const queryInput = document.getElementById("query-input");
     const submitButton = document.getElementById("submit-button");
-    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const statusBox = document.getElementById("status");
+    const profileCard = document.getElementById("profile-card");
+    const metricsGrid = document.getElementById("metrics-grid");
+    const badgePanel = document.getElementById("badge-panel");
+    const badgeGrid = document.getElementById("badge-grid");
+    const emptyNote = document.getElementById("empty-note");
 
-    let latestPayload = null;
-    let activeRange = "7d";
+    const profileFields = {
+      banner: document.getElementById("profile-banner"),
+      avatar: document.getElementById("profile-avatar"),
+      name: document.getElementById("profile-name"),
+      description: document.getElementById("profile-description"),
+      wallet: document.getElementById("profile-wallet"),
+      tierChip: document.getElementById("tier-chip"),
+      meta: document.getElementById("profile-meta"),
+      portalLink: document.getElementById("portal-link"),
+      badgeCount: document.getElementById("badge-count"),
+      badgeFoot: document.getElementById("badge-foot"),
+      tierV2: document.getElementById("tier-v2-value"),
+      streamingFoot: document.getElementById("streaming-foot"),
+      assetSummary: document.getElementById("asset-summary"),
+      avatarFoot: document.getElementById("avatar-foot"),
+      bannerFoot: document.getElementById("banner-foot"),
+      badgeListCount: document.getElementById("badge-list-count")
+    };
 
-    const fieldMap = {
-      profileName: document.getElementById("profile-name"),
-      wallet: document.getElementById("wallet-value"),
-      tier: document.getElementById("profile-tier"),
-      transactions: document.getElementById("transactions-value"),
-      transactionsFoot: document.getElementById("transactions-foot"),
-      allTimeFoot: document.getElementById("all-time-foot"),
-      badges: document.getElementById("badges-value"),
-      badgesFoot: document.getElementById("badges-foot"),
-      mostUsed: document.getElementById("most-used-value"),
-      mostUsedFoot: document.getElementById("most-used-foot"),
-      appsTotalFoot: document.getElementById("apps-total-foot"),
+    const metricFields = {
+      tx: document.getElementById("tx-value"),
+      txFoot: document.getElementById("tx-foot"),
       balance: document.getElementById("balance-value"),
-      balanceNote: document.getElementById("balance-note"),
+      balanceFoot: document.getElementById("balance-foot"),
       age: document.getElementById("age-value"),
-      ageNote: document.getElementById("age-note"),
-      appsCount: document.getElementById("apps-count"),
-      appsList: document.getElementById("apps-list"),
-      chart: document.getElementById("chart")
+      firstTxFoot: document.getElementById("first-tx-foot"),
+      mostUsed: document.getElementById("most-used-value"),
+      mostUsedFoot: document.getElementById("most-used-foot")
     };
 
     function setStatus(type, message) {
@@ -671,154 +717,140 @@
 
     function setLoading(isLoading) {
       submitButton.disabled = isLoading;
-      submitButton.textContent = isLoading ? "Searching..." : "Search";
+      submitButton.textContent = isLoading ? "Loading..." : "Search";
     }
 
-    function formatNumber(value, maximumFractionDigits = 2) {
-      return new Intl.NumberFormat("en-US", { maximumFractionDigits }).format(value);
+    function formatNumber(value, fractionDigits = 0) {
+      return new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: fractionDigits
+      }).format(value);
     }
 
-    function formatDate(value) {
-      if (!value) return "-";
-      return new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short"
-      }).format(new Date(value));
+    function shortenAddress(value) {
+      const safe = String(value || "");
+      if (safe.length < 14) return safe;
+      return safe.slice(0, 8) + "..." + safe.slice(-6);
     }
 
-    function selectTab(range) {
-      activeRange = range;
-      tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.range === range));
-      if (latestPayload) renderResult(latestPayload);
+    function safeText(value, fallback = "-") {
+      return value == null || value === "" ? fallback : String(value);
     }
 
-    function buildAppSummary(transactions) {
-      const groups = new Map();
+    function renderBadges(badges) {
+      badgeGrid.innerHTML = "";
 
-      (transactions || []).forEach((tx) => {
-        const key = String(tx.to || tx.contractAddress || "").toLowerCase();
-        if (!key) return;
+      const list = Array.isArray(badges) ? badges : [];
+      profileFields.badgeListCount.textContent = list.length + " badge";
+      emptyNote.className = list.length ? "empty-note" : "empty-note visible";
 
-        const current = groups.get(key) || {
-          name: key.slice(0, 10) + "..." + key.slice(-4),
-          address: key,
-          txCount: 0
-        };
-
-        current.txCount += 1;
-        groups.set(key, current);
-      });
-
-      return Array.from(groups.values())
-        .sort((a, b) => b.txCount - a.txCount)
-        .slice(0, 8);
-    }
-
-    function getRangeValue(metrics) {
-      if (activeRange === "24h") return { value: metrics.tx24h, label: "24 Hours" };
-      if (activeRange === "30d") return { value: metrics.tx30d, label: "30 Days" };
-      if (activeRange === "all") return { value: metrics.allTimeTx, label: "All Time" };
-      return { value: metrics.tx7d, label: "7 Days" };
-    }
-
-    function renderApps(apps) {
-      fieldMap.appsList.innerHTML = "";
-      const maxTx = apps.reduce((max, item) => Math.max(max, item.txCount || 0), 0) || 1;
-
-      apps.forEach((app, index) => {
-        const row = document.createElement("div");
-        row.className = "app-row";
-        row.innerHTML = `
-          <div class="app-rank">${index + 1}</div>
-          <div>
-            <div class="app-name">${app.name}</div>
-            <div class="app-sub">${app.address}</div>
+      list.forEach((item) => {
+        const badge = item.badge || {};
+        const card = document.createElement("article");
+        card.className = "badge-card";
+        card.innerHTML = `
+          <div class="badge-top">
+            <div class="badge-name">${safeText(badge.name, "Unknown Badge")}</div>
+            <div class="badge-type">${safeText(badge.type, "regular")}</div>
           </div>
-          <div class="app-stats">
-            <div class="bar"><div class="bar-fill" style="width:${Math.max(8, Math.round((app.txCount / maxTx) * 100))}%"></div></div>
-            <div class="app-tx">${formatNumber(app.txCount, 0)} TX</div>
+          <div class="badge-description">${safeText(badge.description, "Aciklama yok.")}</div>
+          <div class="badge-requirement"><strong>Requirement:</strong> ${safeText(badge.requirement, "-")}</div>
+          <div class="badge-meta">
+            <span>Icon: ${safeText(badge.icon, "-")}</span>
+            <span class="claim-chip">${item.claimed ? "Claimed" : "Unclaimed"}</span>
           </div>
         `;
-        fieldMap.appsList.appendChild(row);
+        badgeGrid.appendChild(card);
       });
     }
 
-    function renderChart(points) {
-      fieldMap.chart.innerHTML = "";
-      const maxValue = points.reduce((max, point) => Math.max(max, point.count), 0) || 1;
+    function renderProfile(payload) {
+      const user = payload.user || {};
+      const badges = Array.isArray(user.badges) ? user.badges : [];
+      const avatarUrl = user.overrideProfilePictureUrl || "./assets/kobetsu-pfp.png";
+      const wallet = user.walletAddress || payload.walletAddress || "-";
+      const badgeCount = badges.filter((item) => item.claimed).length;
+      const bannerText = user.banner
+        ? `S${safeText(user.banner.season)} / T${safeText(user.banner.tier)} / K${safeText(user.banner.key)}`
+        : "-";
+      const avatarText = user.avatar
+        ? `S${safeText(user.avatar.season)} / T${safeText(user.avatar.tier)} / K${safeText(user.avatar.key)}`
+        : "-";
 
-      points.forEach((point) => {
-        const bar = document.createElement("div");
-        bar.className = "chart-bar";
-        bar.innerHTML = `
-          <div class="chart-value">${point.count > 0 ? point.count : ""}</div>
-          <div class="chart-column" style="height:${Math.max(4, Math.round((point.count / maxValue) * 170))}px"></div>
-          <div class="chart-label">${point.label}</div>
-        `;
-        fieldMap.chart.appendChild(bar);
-      });
+      profileFields.banner.style.setProperty("--banner-image", user.overrideProfilePictureUrl ? `url('${user.overrideProfilePictureUrl}')` : "none");
+      profileFields.avatar.src = avatarUrl;
+      profileFields.name.textContent = safeText(user.name, "Unknown");
+      profileFields.description.textContent = safeText(user.description, "Aciklama yok.");
+      profileFields.wallet.textContent = wallet;
+      profileFields.tierChip.textContent = "Tier " + safeText(user.tier);
+      profileFields.meta.textContent = `ID ${safeText(user.id)} · TierV2 ${safeText(user.tierV2)} · Welcome Tour ${user.hasCompletedWelcomeTour ? "Yes" : "No"}`;
+      profileFields.portalLink.href = "https://portal.abs.xyz/profile/" + wallet;
+      profileFields.badgeCount.textContent = formatNumber(badgeCount, 0);
+      profileFields.badgeFoot.textContent = badges.length + " total badge";
+      profileFields.tierV2.textContent = safeText(user.tierV2);
+      profileFields.streamingFoot.textContent = "Streaming: " + (user.hasStreamingAccess ? "Yes" : "No");
+      profileFields.assetSummary.textContent = [user.avatar ? "Avatar" : null, user.banner ? "Banner" : null].filter(Boolean).join(" + ") || "-";
+      profileFields.avatarFoot.textContent = "Avatar: " + avatarText;
+      profileFields.bannerFoot.textContent = "Banner: " + bannerText;
+
+      renderBadges(badges);
+      profileCard.className = "panel profile-card visible";
+      badgePanel.className = "badge-panel visible";
     }
 
-    function renderResult(data) {
-      const { metrics, transactionWindow, walletAddress, balance, profile } = data;
-      const apps = buildAppSummary(transactionWindow.recentTransactions || []);
-      const mostUsed = apps[0];
-      const rangeInfo = getRangeValue(metrics);
+    function renderWalletMetrics(payload) {
+      if (!payload || !payload.metrics) {
+        metricsGrid.className = "metrics-grid";
+        return;
+      }
 
-      fieldMap.profileName.textContent = profile?.name || "Unknown";
-      fieldMap.wallet.textContent = walletAddress;
-      fieldMap.tier.textContent = profile?.tier || "Tier unavailable";
-      fieldMap.transactions.textContent = formatNumber(rangeInfo.value, 0);
-      fieldMap.transactionsFoot.textContent = rangeInfo.label;
-      fieldMap.allTimeFoot.textContent = "All-time TX: " + formatNumber(metrics.allTimeTx, 0);
-      fieldMap.badges.textContent = profile?.badgeCount != null ? formatNumber(profile.badgeCount, 0) : "-";
-      fieldMap.badgesFoot.textContent = profile?.badgesSource || "Not connected";
-      fieldMap.mostUsed.textContent = mostUsed ? mostUsed.name : "-";
-      fieldMap.mostUsedFoot.textContent = rangeInfo.label;
-      fieldMap.appsTotalFoot.textContent = apps.length + " dApp";
-      fieldMap.balance.textContent = balance.formatted + " ETH";
-      fieldMap.balanceNote.textContent = balance.wei + " wei";
-      fieldMap.age.textContent = metrics.walletAgeText;
-      fieldMap.ageNote.textContent = metrics.firstTransactionAt ? formatDate(metrics.firstTransactionAt) : "-";
-      fieldMap.appsCount.textContent = apps.length + " dApp";
+      metricFields.tx.textContent = formatNumber(payload.metrics.allTimeTx || 0, 0);
+      metricFields.txFoot.textContent = "All-time";
+      metricFields.balance.textContent = safeText(payload.balance?.formatted, "0") + " ETH";
+      metricFields.balanceFoot.textContent = "Local dataset";
+      metricFields.age.textContent = safeText(payload.metrics.walletAgeText, "-");
+      metricFields.firstTxFoot.textContent = safeText(payload.metrics.firstTransactionAt, "-");
+      metricFields.mostUsed.textContent = safeText(payload.appSummary?.mostUsed?.name, "-");
+      metricFields.mostUsedFoot.textContent = payload.appSummary?.mostUsed?.txCount
+        ? formatNumber(payload.appSummary.mostUsed.txCount, 0) + " tx"
+        : "-";
 
-      renderApps(apps);
-      renderChart(transactionWindow.dailyChart || []);
-
-      resultSection.className = "result-card visible";
-      appsCard.className = "apps-card visible";
-      chartCard.className = "chart-card visible";
+      metricsGrid.className = "metrics-grid visible";
     }
 
-    async function analyzeWallet(input) {
+    async function analyze(query) {
       setLoading(true);
       clearStatus();
-      resultSection.className = "result-card";
-      appsCard.className = "apps-card";
-      chartCard.className = "chart-card";
+      profileCard.className = "panel profile-card";
+      badgePanel.className = "badge-panel";
+      metricsGrid.className = "metrics-grid";
 
       try {
-        setStatus("loading", "Loading...");
+        setStatus("loading", "Profile, badge ve tier verileri aliniyor...");
 
-        const response = await fetch("/api/wallet?address=" + encodeURIComponent(input));
-        const text = await response.text();
+        const profileResponse = await fetch("/api/profile?query=" + encodeURIComponent(query));
+        const profilePayload = await profileResponse.json();
 
-        let payload;
-        try {
-          payload = JSON.parse(text);
-        } catch {
-          throw new Error(text || "Server returned a non-JSON response.");
+        if (!profileResponse.ok) {
+          throw new Error(profilePayload.error || "Profile request failed.");
         }
 
-        if (!response.ok) {
-          throw new Error(payload.error || "Unknown error.");
+        renderProfile(profilePayload);
+
+        const walletAddress = profilePayload.user?.walletAddress;
+        if (walletAddress) {
+          try {
+            const walletResponse = await fetch("/api/wallet?address=" + encodeURIComponent(walletAddress));
+            const walletPayload = await walletResponse.json();
+            if (walletResponse.ok) {
+              renderWalletMetrics(walletPayload);
+            }
+          } catch (_) {
+          }
         }
 
-        latestPayload = payload;
-        renderResult(payload);
-        setStatus("success", "Done.");
+        setStatus("success", "Profile verisi geldi. Badge ve tier alani guncellendi.");
       } catch (error) {
-        setStatus("error", error.message || "Unexpected request error.");
+        setStatus("error", error.message || "Beklenmeyen bir hata olustu.");
       } finally {
         setLoading(false);
       }
@@ -826,16 +858,12 @@
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      const input = addressInput.value.trim();
-      if (!/^0x[a-fA-F0-9]{40}$/.test(input)) {
-        setStatus("error", "Enter a valid wallet address.");
+      const query = queryInput.value.trim();
+      if (!query) {
+        setStatus("error", "Wallet veya nickname gir.");
         return;
       }
-      analyzeWallet(input);
-    });
-
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", () => selectTab(tab.dataset.range));
+      analyze(query);
     });
   </script>
 </body>
