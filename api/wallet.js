@@ -3,10 +3,9 @@ const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const CHAIN_ID = 2741;
 const PAGE_SIZE = 100;
-const MAX_PAGES = 12;
+const FETCH_TIMEOUT_MS = 12000;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
-const FETCH_TIMEOUT_MS = 12000;
 
 function sendJson(res, statusCode, payload) {
   res.status(statusCode).json(payload);
@@ -30,7 +29,10 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS)
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
   } catch (error) {
     if (error.name === "AbortError") {
       throw new Error("Request timed out.");
@@ -83,6 +85,7 @@ async function fetchExplorerTransactions(address, options = {}) {
   url.searchParams.set("apikey", ETHERSCAN_API_KEY);
 
   const response = await fetchWithTimeout(url.toString());
+
   if (!response.ok) {
     throw new Error(`Explorer error: HTTP ${response.status}`);
   }
@@ -95,6 +98,7 @@ async function fetchExplorerTransactions(address, options = {}) {
     }
 
     const reason = typeof payload.result === "string" ? payload.result : payload.message;
+
     if (/rate limit|max calls per sec|too many/i.test(reason || "")) {
       throw new Error("Explorer rate limit reached. Wait and try again.");
     }
@@ -155,7 +159,7 @@ function calculateWalletAge(firstTransactionAt, nowMs) {
   return {
     walletAgeDays,
     walletAgeText: `${(walletAgeDays / 30.4375).toFixed(1)} months`
-    };
+  };
 }
 
 async function resolveInput(query) {
@@ -168,7 +172,7 @@ async function resolveInput(query) {
         name: "Unknown",
         tier: "Tier pending",
         badgeCount: 0,
-        badgesSource: "Portal source not connected yet"
+        badgesSource: "Profile source not connected yet"
       }
     };
   }
@@ -197,76 +201,52 @@ async function getWalletCoreMetrics(address) {
   };
 }
 
-async function getFirstTransaction(address) {
-  const result = await fetchExplorerTransactions(address, {
+async function getExplorerSummary(address) {
+  const newest = await fetchExplorerTransactions(address, {
+    sort: "desc",
+    page: 1,
+    offset: PAGE_SIZE
+  });
+
+  const oldest = await fetchExplorerTransactions(address, {
     sort: "asc",
     page: 1,
     offset: 1
   });
 
-  return result[0] || null;
-}
+  const firstTransaction = oldest[0] || null;
+  const lastTransaction = newest[0] || null;
 
-async function getTransactionWindowMetrics(address) {
   const nowSeconds = Math.floor(Date.now() / 1000);
   const cutoff24h = nowSeconds - DAY_IN_SECONDS;
   const cutoff7d = nowSeconds - 7 * DAY_IN_SECONDS;
-  const cutoff30d = nowSeconds - 30 * DAY_IN_SECONDS;
-  const chartPoints = buildEmptyChart(14);
-  const chartLookup = new Map(chartPoints.map((point) => [point.date, point]));
 
   let tx24h = 0;
   let tx7d = 0;
-  let tx30d = 0;
-  let lastTransactionAt = null;
-  const recentTransactions = [];
-  let shouldStop = false;
 
-  for (let page = 1; page <= MAX_PAGES && !shouldStop; page += 1) {
-    const batch = await fetchExplorerTransactions(address, {
-      sort: "desc",
-      page,
-      offset: PAGE_SIZE
-    });
+  const chartPoints = buildEmptyChart(14);
+  const chartLookup = new Map(chartPoints.map((point) => [point.date, point]));
 
-    if (batch.length === 0) break;
+  for (const tx of newest) {
+    const timestamp = Number(tx.timeStamp);
+    if (!Number.isFinite(timestamp)) continue;
 
-    if (!lastTransactionAt) {
-      lastTransactionAt = new Date(Number(batch[0].timeStamp) * 1000).toISOString();
+    if (timestamp >= cutoff24h) tx24h += 1;
+    if (timestamp >= cutoff7d) tx7d += 1;
+
+    const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
+    if (chartLookup.has(isoDate)) {
+      chartLookup.get(isoDate).count += 1;
     }
-
-    for (const tx of batch) {
-      const timestamp = Number(tx.timeStamp);
-      if (!Number.isFinite(timestamp)) continue;
-
-      if (timestamp >= cutoff24h) tx24h += 1;
-      if (timestamp >= cutoff7d) {
-        tx7d += 1;
-        recentTransactions.push(tx);
-      }
-
-      if (timestamp >= cutoff30d) {
-        tx30d += 1;
-        const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
-        if (chartLookup.has(isoDate)) {
-          chartLookup.get(isoDate).count += 1;
-        }
-      } else {
-        shouldStop = true;
-        break;
-      }
-    }
-
-    if (batch.length < PAGE_SIZE) break;
   }
 
   return {
     tx24h,
     tx7d,
-    tx30d,
-    lastTransactionAt,
-    dailyChart: chartPoints,
-    recentTransactions
+    firstTransactionAt: firstTransaction ? new Date(Number(firstTransaction.timeStamp) * 1000).toISOString() : null,
+    lastTransactionAt: lastTransaction ? new Date(Number(lastTransaction.timeStamp) * 1000).toISOString() : null,
+    recentTransactions: newest,
+    dailyChart: chartPoints
   };
 }
 
@@ -292,18 +272,12 @@ export default async function handler(req, res) {
 
     const address = resolved.walletAddress;
 
-    const [coreMetrics, firstTransaction, transactionWindow] = await Promise.all([
+    const [coreMetrics, explorerSummary] = await Promise.all([
       getWalletCoreMetrics(address),
-      getFirstTransaction(address),
-      getTransactionWindowMetrics(address)
+      getExplorerSummary(address)
     ]);
 
-    const firstTransactionAt = firstTransaction
-      ? new Date(Number(firstTransaction.timeStamp) * 1000).toISOString()
-      : null;
-
-    const ageMetrics = calculateWalletAge(firstTransactionAt, Date.now());
-
+    const ageMetrics = calculateWalletAge(explorerSummary.firstTransactionAt, Date.now());
     const averageDailyTx = ageMetrics.walletAgeDays && ageMetrics.walletAgeDays > 0
       ? Number((coreMetrics.allTimeTx / ageMetrics.walletAgeDays).toFixed(2))
       : coreMetrics.allTimeTx > 0 ? coreMetrics.allTimeTx : 0;
@@ -321,18 +295,18 @@ export default async function handler(req, res) {
       },
       metrics: {
         allTimeTx: coreMetrics.allTimeTx,
-        tx24h: transactionWindow.tx24h,
-        tx7d: transactionWindow.tx7d,
-        tx30d: transactionWindow.tx30d,
+        tx24h: explorerSummary.tx24h,
+        tx7d: explorerSummary.tx7d,
+        tx30d: explorerSummary.tx7d,
         averageDailyTx,
-        firstTransactionAt,
-        lastTransactionAt: transactionWindow.lastTransactionAt,
+        firstTransactionAt: explorerSummary.firstTransactionAt,
+        lastTransactionAt: explorerSummary.lastTransactionAt,
         walletAgeDays: ageMetrics.walletAgeDays,
         walletAgeText: ageMetrics.walletAgeText
       },
       transactionWindow: {
-        dailyChart: transactionWindow.dailyChart,
-        recentTransactions: transactionWindow.recentTransactions
+        dailyChart: explorerSummary.dailyChart,
+        recentTransactions: explorerSummary.recentTransactions
       }
     });
   } catch (error) {
