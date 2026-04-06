@@ -3,7 +3,7 @@ const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const CHAIN_ID = 2741;
 const PAGE_SIZE = 100;
-const MAX_PAGES = 20;
+const MAX_PAGES = 12;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
 const FETCH_TIMEOUT_MS = 12000;
@@ -30,14 +30,10 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS)
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    return response;
+    return await fetch(url, { ...options, signal: controller.signal });
   } catch (error) {
     if (error.name === "AbortError") {
-      throw new Error("Request timed out while fetching explorer data.");
+      throw new Error("Request timed out.");
     }
     throw error;
   } finally {
@@ -69,22 +65,9 @@ async function rpcCall(method, params) {
   return payload.result;
 }
 
-async function getWalletCoreMetrics(address) {
-  const [nonceHex, balanceHex] = await Promise.all([
-    rpcCall("eth_getTransactionCount", [address, "latest"]),
-    rpcCall("eth_getBalance", [address, "latest"])
-  ]);
-
-  return {
-    allTimeTx: Number.parseInt(nonceHex, 16),
-    balanceWei: BigInt(balanceHex).toString(),
-    balanceFormatted: formatEther(balanceHex)
-  };
-}
-
 async function fetchExplorerTransactions(address, options = {}) {
   if (!ETHERSCAN_API_KEY) {
-    throw new Error("ETHERSCAN_API_KEY is missing. Add it in Vercel Environment Variables.");
+    throw new Error("ETHERSCAN_API_KEY is missing.");
   }
 
   const url = new URL(ETHERSCAN_API_BASE);
@@ -100,7 +83,6 @@ async function fetchExplorerTransactions(address, options = {}) {
   url.searchParams.set("apikey", ETHERSCAN_API_KEY);
 
   const response = await fetchWithTimeout(url.toString());
-
   if (!response.ok) {
     throw new Error(`Explorer error: HTTP ${response.status}`);
   }
@@ -113,9 +95,8 @@ async function fetchExplorerTransactions(address, options = {}) {
     }
 
     const reason = typeof payload.result === "string" ? payload.result : payload.message;
-
     if (/rate limit|max calls per sec|too many/i.test(reason || "")) {
-      throw new Error("Explorer rate limit reached. Wait a few seconds and try again.");
+      throw new Error("Explorer rate limit reached. Wait and try again.");
     }
 
     throw new Error(reason || "Invalid explorer response.");
@@ -135,7 +116,6 @@ function buildEmptyChart(days) {
   for (let index = days - 1; index >= 0; index -= 1) {
     const pointDate = new Date(now.getTime() - index * DAY_IN_MS);
     const isoDate = pointDate.toISOString().slice(0, 10);
-
     points.push({
       date: isoDate,
       label: isoDate.slice(5),
@@ -151,7 +131,7 @@ function calculateWalletAge(firstTransactionAt, nowMs) {
   if (!firstTransactionAt) {
     return {
       walletAgeDays: null,
-      walletAgeText: "No transaction history found"
+      walletAgeText: "No history"
     };
   }
 
@@ -159,10 +139,9 @@ function calculateWalletAge(firstTransactionAt, nowMs) {
   const walletAgeDays = diffMs / DAY_IN_MS;
 
   if (walletAgeDays < 1) {
-    const hours = Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)));
     return {
       walletAgeDays,
-      walletAgeText: `${hours} hours`
+      walletAgeText: `${Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)))} hours`
     };
   }
 
@@ -173,10 +152,48 @@ function calculateWalletAge(firstTransactionAt, nowMs) {
     };
   }
 
-  const months = walletAgeDays / 30.4375;
   return {
     walletAgeDays,
-    walletAgeText: `${months.toFixed(1)} months`
+    walletAgeText: `${(walletAgeDays / 30.4375).toFixed(1)} months`
+    };
+}
+
+async function resolveInput(query) {
+  const trimmed = String(query || "").trim();
+
+  if (isValidAddress(trimmed)) {
+    return {
+      walletAddress: trimmed,
+      profile: {
+        name: "Unknown",
+        tier: "Tier pending",
+        badgeCount: 0,
+        badgesSource: "Portal source not connected yet"
+      }
+    };
+  }
+
+  return {
+    walletAddress: null,
+    profile: {
+      name: trimmed || "Unknown",
+      tier: "Tier pending",
+      badgeCount: 0,
+      badgesSource: "Username resolver not connected yet"
+    }
+  };
+}
+
+async function getWalletCoreMetrics(address) {
+  const [nonceHex, balanceHex] = await Promise.all([
+    rpcCall("eth_getTransactionCount", [address, "latest"]),
+    rpcCall("eth_getBalance", [address, "latest"])
+  ]);
+
+  return {
+    allTimeTx: Number.parseInt(nonceHex, 16),
+    balanceWei: BigInt(balanceHex).toString(),
+    balanceFormatted: formatEther(balanceHex)
   };
 }
 
@@ -202,6 +219,7 @@ async function getTransactionWindowMetrics(address) {
   let tx7d = 0;
   let tx30d = 0;
   let lastTransactionAt = null;
+  const recentTransactions = [];
   let shouldStop = false;
 
   for (let page = 1; page <= MAX_PAGES && !shouldStop; page += 1) {
@@ -211,9 +229,7 @@ async function getTransactionWindowMetrics(address) {
       offset: PAGE_SIZE
     });
 
-    if (batch.length === 0) {
-      break;
-    }
+    if (batch.length === 0) break;
 
     if (!lastTransactionAt) {
       lastTransactionAt = new Date(Number(batch[0].timeStamp) * 1000).toISOString();
@@ -224,7 +240,10 @@ async function getTransactionWindowMetrics(address) {
       if (!Number.isFinite(timestamp)) continue;
 
       if (timestamp >= cutoff24h) tx24h += 1;
-      if (timestamp >= cutoff7d) tx7d += 1;
+      if (timestamp >= cutoff7d) {
+        tx7d += 1;
+        recentTransactions.push(tx);
+      }
 
       if (timestamp >= cutoff30d) {
         tx30d += 1;
@@ -238,9 +257,7 @@ async function getTransactionWindowMetrics(address) {
       }
     }
 
-    if (batch.length < PAGE_SIZE) {
-      break;
-    }
+    if (batch.length < PAGE_SIZE) break;
   }
 
   return {
@@ -248,7 +265,8 @@ async function getTransactionWindowMetrics(address) {
     tx7d,
     tx30d,
     lastTransactionAt,
-    dailyChart: chartPoints
+    dailyChart: chartPoints,
+    recentTransactions
   };
 }
 
@@ -257,13 +275,23 @@ export default async function handler(req, res) {
     return sendJson(res, 405, { error: "Only GET requests are supported." });
   }
 
-  const address = String(req.query.address || "").trim();
+  const query = String(req.query.query || req.query.address || "").trim();
 
-  if (!isValidAddress(address)) {
-    return sendJson(res, 400, { error: "Please provide a valid EVM wallet address." });
+  if (!query) {
+    return sendJson(res, 400, { error: "Please provide a wallet or username." });
   }
 
   try {
+    const resolved = await resolveInput(query);
+
+    if (!resolved.walletAddress) {
+      return sendJson(res, 400, {
+        error: "Username search is not connected yet. Use a wallet address for now."
+      });
+    }
+
+    const address = resolved.walletAddress;
+
     const [coreMetrics, firstTransaction, transactionWindow] = await Promise.all([
       getWalletCoreMetrics(address),
       getFirstTransaction(address),
@@ -275,12 +303,14 @@ export default async function handler(req, res) {
       : null;
 
     const ageMetrics = calculateWalletAge(firstTransactionAt, Date.now());
+
     const averageDailyTx = ageMetrics.walletAgeDays && ageMetrics.walletAgeDays > 0
       ? Number((coreMetrics.allTimeTx / ageMetrics.walletAgeDays).toFixed(2))
       : coreMetrics.allTimeTx > 0 ? coreMetrics.allTimeTx : 0;
 
     return sendJson(res, 200, {
       walletAddress: address,
+      profile: resolved.profile,
       network: {
         name: "Abstract Mainnet",
         chainId: CHAIN_ID
@@ -301,7 +331,8 @@ export default async function handler(req, res) {
         walletAgeText: ageMetrics.walletAgeText
       },
       transactionWindow: {
-        dailyChart: transactionWindow.dailyChart
+        dailyChart: transactionWindow.dailyChart,
+        recentTransactions: transactionWindow.recentTransactions
       }
     });
   } catch (error) {
