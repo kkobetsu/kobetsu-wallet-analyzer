@@ -1,9 +1,9 @@
 const ABSTRACT_RPC_URL = process.env.ABSTRACT_RPC_URL || "https://api.mainnet.abs.xyz";
-const ABSCAN_API_BASE = "https://api.abscan.org/api";
-const ABSCAN_API_KEY = process.env.ABSCAN_API_KEY;
+const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const CHAIN_ID = 2741;
-const PAGE_SIZE = 200;
-const MAX_PAGES = 8;
+const PAGE_SIZE = 100;
+const MAX_PAGES = 6;
 const FETCH_TIMEOUT_MS = 12000;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
@@ -36,7 +36,9 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS)
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } catch (error) {
-    if (error.name === "AbortError") throw new Error("Request timed out.");
+    if (error.name === "AbortError") {
+      throw new Error("Request timed out.");
+    }
     throw error;
   } finally {
     clearTimeout(timeout);
@@ -55,19 +57,25 @@ async function rpcCall(method, params) {
     })
   });
 
-  if (!response.ok) throw new Error(`Abstract RPC error: HTTP ${response.status}`);
+  if (!response.ok) {
+    throw new Error(`Abstract RPC error: HTTP ${response.status}`);
+  }
 
   const payload = await response.json();
-  if (payload.error) throw new Error(payload.error.message || "Invalid Abstract RPC response.");
+  if (payload.error) {
+    throw new Error(payload.error.message || "Invalid Abstract RPC response.");
+  }
+
   return payload.result;
 }
 
-async function fetchAbscanTransactions(address, options = {}) {
-  if (!ABSCAN_API_KEY) {
-    throw new Error("ABSCAN_API_KEY is missing.");
+async function fetchExplorerTransactions(address, options = {}) {
+  if (!ETHERSCAN_API_KEY) {
+    throw new Error("ETHERSCAN_API_KEY is missing.");
   }
 
-  const url = new URL(ABSCAN_API_BASE);
+  const url = new URL(ETHERSCAN_API_BASE);
+  url.searchParams.set("chainid", String(CHAIN_ID));
   url.searchParams.set("module", "account");
   url.searchParams.set("action", "txlist");
   url.searchParams.set("address", address);
@@ -76,26 +84,32 @@ async function fetchAbscanTransactions(address, options = {}) {
   url.searchParams.set("page", String(options.page || 1));
   url.searchParams.set("offset", String(options.offset || PAGE_SIZE));
   url.searchParams.set("sort", options.sort || "desc");
-  url.searchParams.set("chainId", String(CHAIN_ID));
-  url.searchParams.set("apikey", ABSCAN_API_KEY);
+  url.searchParams.set("apikey", ETHERSCAN_API_KEY);
 
   const response = await fetchWithTimeout(url.toString());
-  if (!response.ok) throw new Error(`Abscan error: HTTP ${response.status}`);
+
+  if (!response.ok) {
+    throw new Error(`Explorer error: HTTP ${response.status}`);
+  }
 
   const payload = await response.json();
 
   if (payload.status === "0") {
-    if (payload.message === "No transactions found") return [];
+    if (payload.message === "No transactions found") {
+      return [];
+    }
 
     const reason = typeof payload.result === "string" ? payload.result : payload.message;
-    if (/rate limit|max rate limit|too many/i.test(reason || "")) {
-      throw new Error("Abscan rate limit reached. Wait a few seconds and try again.");
+
+    if (/rate limit|max calls per sec|too many/i.test(reason || "")) {
+      throw new Error("Explorer rate limit reached. Wait 10-20 seconds and try again.");
     }
-    throw new Error(reason || "Invalid Abscan response.");
+
+    throw new Error(reason || "Invalid explorer response.");
   }
 
   if (!Array.isArray(payload.result)) {
-    throw new Error("Abscan result format is invalid.");
+    throw new Error("Explorer result format is invalid.");
   }
 
   return payload.result;
@@ -121,7 +135,10 @@ function buildEmptyChart(days) {
 
 function calculateWalletAge(firstTransactionAt, nowMs) {
   if (!firstTransactionAt) {
-    return { walletAgeDays: null, walletAgeText: "No history" };
+    return {
+      walletAgeDays: null,
+      walletAgeText: "No history"
+    };
   }
 
   const diffMs = Math.max(0, nowMs - new Date(firstTransactionAt).getTime());
@@ -161,13 +178,13 @@ async function getWalletCoreMetrics(address) {
 }
 
 async function getExplorerSummary(address) {
-  const newest = await fetchAbscanTransactions(address, {
+  const newest = await fetchExplorerTransactions(address, {
     sort: "desc",
     page: 1,
     offset: PAGE_SIZE
   });
 
-  const oldest = await fetchAbscanTransactions(address, {
+  const oldest = await fetchExplorerTransactions(address, {
     sort: "asc",
     page: 1,
     offset: 1
@@ -199,7 +216,9 @@ async function getExplorerSummary(address) {
       if (timestamp >= cutoff30d) tx30d += 1;
 
       const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
-      if (chartLookup.has(isoDate)) chartLookup.get(isoDate).count += 1;
+      if (chartLookup.has(isoDate)) {
+        chartLookup.get(isoDate).count += 1;
+      }
     }
   }
 
@@ -208,7 +227,7 @@ async function getExplorerSummary(address) {
   let stop = newest.some((tx) => Number(tx.timeStamp) < cutoff30d);
 
   for (let page = 2; page <= MAX_PAGES && !stop; page += 1) {
-    const batch = await fetchAbscanTransactions(address, {
+    const batch = await fetchExplorerTransactions(address, {
       sort: "desc",
       page,
       offset: PAGE_SIZE
@@ -239,6 +258,7 @@ export default async function handler(req, res) {
   }
 
   const address = String(req.query.address || "").trim();
+
   if (!isValidAddress(address)) {
     return sendJson(res, 400, { error: "Please provide a valid wallet address." });
   }
