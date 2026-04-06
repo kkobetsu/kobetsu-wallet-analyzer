@@ -3,9 +3,14 @@ const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const CHAIN_ID = 2741;
 const PAGE_SIZE = 100;
+const MAX_PAGES = 6;
 const FETCH_TIMEOUT_MS = 12000;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
+const CACHE_TTL_MS = 90 * 1000;
+
+const cache = globalThis.__walletCache || new Map();
+globalThis.__walletCache = cache;
 
 function sendJson(res, statusCode, payload) {
   res.status(statusCode).json(payload);
@@ -27,16 +32,10 @@ function formatEther(weiHex) {
 async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
+    return await fetch(url, { ...options, signal: controller.signal });
   } catch (error) {
-    if (error.name === "AbortError") {
-      throw new Error("Request timed out.");
-    }
+    if (error.name === "AbortError") throw new Error("Request timed out.");
     throw error;
   } finally {
     clearTimeout(timeout);
@@ -55,15 +54,10 @@ async function rpcCall(method, params) {
     })
   });
 
-  if (!response.ok) {
-    throw new Error(`Abstract RPC error: HTTP ${response.status}`);
-  }
+  if (!response.ok) throw new Error(`Abstract RPC error: HTTP ${response.status}`);
 
   const payload = await response.json();
-  if (payload.error) {
-    throw new Error(payload.error.message || "Invalid Abstract RPC response.");
-  }
-
+  if (payload.error) throw new Error(payload.error.message || "Invalid Abstract RPC response.");
   return payload.result;
 }
 
@@ -85,24 +79,16 @@ async function fetchExplorerTransactions(address, options = {}) {
   url.searchParams.set("apikey", ETHERSCAN_API_KEY);
 
   const response = await fetchWithTimeout(url.toString());
-
-  if (!response.ok) {
-    throw new Error(`Explorer error: HTTP ${response.status}`);
-  }
+  if (!response.ok) throw new Error(`Explorer error: HTTP ${response.status}`);
 
   const payload = await response.json();
 
   if (payload.status === "0") {
-    if (payload.message === "No transactions found") {
-      return [];
-    }
-
+    if (payload.message === "No transactions found") return [];
     const reason = typeof payload.result === "string" ? payload.result : payload.message;
-
     if (/rate limit|max calls per sec|too many/i.test(reason || "")) {
-      throw new Error("Explorer rate limit reached. Wait and try again.");
+      throw new Error("Explorer rate limit reached. Wait 10-20 seconds and try again.");
     }
-
     throw new Error(reason || "Invalid explorer response.");
   }
 
@@ -133,10 +119,7 @@ function buildEmptyChart(days) {
 
 function calculateWalletAge(firstTransactionAt, nowMs) {
   if (!firstTransactionAt) {
-    return {
-      walletAgeDays: null,
-      walletAgeText: "No history"
-    };
+    return { walletAgeDays: null, walletAgeText: "No history" };
   }
 
   const diffMs = Math.max(0, nowMs - new Date(firstTransactionAt).getTime());
@@ -162,32 +145,6 @@ function calculateWalletAge(firstTransactionAt, nowMs) {
   };
 }
 
-async function resolveInput(query) {
-  const trimmed = String(query || "").trim();
-
-  if (isValidAddress(trimmed)) {
-    return {
-      walletAddress: trimmed,
-      profile: {
-        name: "Unknown",
-        tier: "Tier pending",
-        badgeCount: 0,
-        badgesSource: "Profile source not connected yet"
-      }
-    };
-  }
-
-  return {
-    walletAddress: null,
-    profile: {
-      name: trimmed || "Unknown",
-      tier: "Tier pending",
-      badgeCount: 0,
-      badgesSource: "Username resolver not connected yet"
-    }
-  };
-}
-
 async function getWalletCoreMetrics(address) {
   const [nonceHex, balanceHex] = await Promise.all([
     rpcCall("eth_getTransactionCount", [address, "latest"]),
@@ -202,7 +159,7 @@ async function getWalletCoreMetrics(address) {
 }
 
 async function getExplorerSummary(address) {
-  const newest = await fetchExplorerTransactions(address, {
+  const firstBatch = await fetchExplorerTransactions(address, {
     sort: "desc",
     page: 1,
     offset: PAGE_SIZE
@@ -214,38 +171,62 @@ async function getExplorerSummary(address) {
     offset: 1
   });
 
-  const firstTransaction = oldest[0] || null;
-  const lastTransaction = newest[0] || null;
+  const chartPoints = buildEmptyChart(14);
+  const chartLookup = new Map(chartPoints.map((point) => [point.date, point]));
 
   const nowSeconds = Math.floor(Date.now() / 1000);
   const cutoff24h = nowSeconds - DAY_IN_SECONDS;
   const cutoff7d = nowSeconds - 7 * DAY_IN_SECONDS;
+  const cutoff30d = nowSeconds - 30 * DAY_IN_SECONDS;
 
   let tx24h = 0;
   let tx7d = 0;
+  let tx30d = 0;
+  const recentTransactions = [];
 
-  const chartPoints = buildEmptyChart(14);
-  const chartLookup = new Map(chartPoints.map((point) => [point.date, point]));
+  const countBatch = (batch) => {
+    for (const tx of batch) {
+      const timestamp = Number(tx.timeStamp);
+      if (!Number.isFinite(timestamp)) continue;
 
-  for (const tx of newest) {
-    const timestamp = Number(tx.timeStamp);
-    if (!Number.isFinite(timestamp)) continue;
+      if (timestamp >= cutoff24h) tx24h += 1;
+      if (timestamp >= cutoff7d) {
+        tx7d += 1;
+        recentTransactions.push(tx);
+      }
+      if (timestamp >= cutoff30d) tx30d += 1;
 
-    if (timestamp >= cutoff24h) tx24h += 1;
-    if (timestamp >= cutoff7d) tx7d += 1;
+      const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
+      if (chartLookup.has(isoDate)) chartLookup.get(isoDate).count += 1;
+    }
+  };
 
-    const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
-    if (chartLookup.has(isoDate)) {
-      chartLookup.get(isoDate).count += 1;
+  countBatch(firstBatch);
+
+  let stop = firstBatch.some((tx) => Number(tx.timeStamp) < cutoff30d);
+
+  for (let page = 2; page <= MAX_PAGES && !stop; page += 1) {
+    const batch = await fetchExplorerTransactions(address, {
+      sort: "desc",
+      page,
+      offset: PAGE_SIZE
+    });
+
+    if (batch.length === 0) break;
+    countBatch(batch);
+
+    if (batch.some((tx) => Number(tx.timeStamp) < cutoff30d) || batch.length < PAGE_SIZE) {
+      stop = true;
     }
   }
 
   return {
     tx24h,
     tx7d,
-    firstTransactionAt: firstTransaction ? new Date(Number(firstTransaction.timeStamp) * 1000).toISOString() : null,
-    lastTransactionAt: lastTransaction ? new Date(Number(lastTransaction.timeStamp) * 1000).toISOString() : null,
-    recentTransactions: newest,
+    tx30d,
+    firstTransactionAt: oldest[0] ? new Date(Number(oldest[0].timeStamp) * 1000).toISOString() : null,
+    lastTransactionAt: firstBatch[0] ? new Date(Number(firstBatch[0].timeStamp) * 1000).toISOString() : null,
+    recentTransactions,
     dailyChart: chartPoints
   };
 }
@@ -255,23 +236,17 @@ export default async function handler(req, res) {
     return sendJson(res, 405, { error: "Only GET requests are supported." });
   }
 
-  const query = String(req.query.query || req.query.address || "").trim();
+  const address = String(req.query.address || "").trim();
+  if (!isValidAddress(address)) {
+    return sendJson(res, 400, { error: "Please provide a valid wallet address." });
+  }
 
-  if (!query) {
-    return sendJson(res, 400, { error: "Please provide a wallet or username." });
+  const cached = cache.get(address);
+  if (cached && Date.now() - cached.createdAt < CACHE_TTL_MS) {
+    return sendJson(res, 200, cached.payload);
   }
 
   try {
-    const resolved = await resolveInput(query);
-
-    if (!resolved.walletAddress) {
-      return sendJson(res, 400, {
-        error: "Username search is not connected yet. Use a wallet address for now."
-      });
-    }
-
-    const address = resolved.walletAddress;
-
     const [coreMetrics, explorerSummary] = await Promise.all([
       getWalletCoreMetrics(address),
       getExplorerSummary(address)
@@ -282,9 +257,14 @@ export default async function handler(req, res) {
       ? Number((coreMetrics.allTimeTx / ageMetrics.walletAgeDays).toFixed(2))
       : coreMetrics.allTimeTx > 0 ? coreMetrics.allTimeTx : 0;
 
-    return sendJson(res, 200, {
+    const payload = {
       walletAddress: address,
-      profile: resolved.profile,
+      profile: {
+        name: "Unknown",
+        tier: "Tier unavailable",
+        badgeCount: null,
+        badgesSource: "Portal profile source not connected yet"
+      },
       network: {
         name: "Abstract Mainnet",
         chainId: CHAIN_ID
@@ -297,7 +277,7 @@ export default async function handler(req, res) {
         allTimeTx: coreMetrics.allTimeTx,
         tx24h: explorerSummary.tx24h,
         tx7d: explorerSummary.tx7d,
-        tx30d: explorerSummary.tx7d,
+        tx30d: explorerSummary.tx30d,
         averageDailyTx,
         firstTransactionAt: explorerSummary.firstTransactionAt,
         lastTransactionAt: explorerSummary.lastTransactionAt,
@@ -308,7 +288,14 @@ export default async function handler(req, res) {
         dailyChart: explorerSummary.dailyChart,
         recentTransactions: explorerSummary.recentTransactions
       }
+    };
+
+    cache.set(address, {
+      createdAt: Date.now(),
+      payload
     });
+
+    return sendJson(res, 200, payload);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected server error.";
     return sendJson(res, 500, { error: message });
