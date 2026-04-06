@@ -14,12 +14,10 @@
       --text: #0c1915;
       --muted: #60766e;
       --green: #1ed57a;
-      --green-strong: #12bf67;
       --danger: #ff647e;
       --shadow: 0 18px 60px rgba(14, 28, 22, 0.08);
       --radius-xl: 30px;
       --radius-lg: 22px;
-      --radius-md: 18px;
       --max-width: 1160px;
     }
 
@@ -569,7 +567,7 @@
           <div class="profile-name" id="profile-name">Unknown</div>
           <div class="profile-wallet" id="wallet-value">-</div>
           <div class="profile-tier" id="profile-tier">Tier unavailable</div>
-          <a class="portal-link" id="portal-link" href="https://portal.abs.xyz/" target="_blank" rel="noreferrer">Portal</a>
+          <a class="portal-link" href="https://portal.abs.xyz/" target="_blank" rel="noreferrer">Portal</a>
         </article>
 
         <article class="metric-card">
@@ -801,8 +799,16 @@
 
       try {
         setStatus("loading", "Loading...");
+
         const response = await fetch("/api/wallet?address=" + encodeURIComponent(input));
-        const payload = await response.json();
+        const text = await response.text();
+
+        let payload;
+        try {
+          payload = JSON.parse(text);
+        } catch {
+          throw new Error(text || "Server returned a non-JSON response.");
+        }
 
         if (!response.ok) {
           throw new Error(payload.error || "Unknown error.");
