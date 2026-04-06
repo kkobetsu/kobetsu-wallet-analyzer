@@ -2,6 +2,149 @@ function sendJson(res, statusCode, payload) {
   res.status(statusCode).json(payload);
 }
 
+const KOBETSU_FALLBACK = {
+  source: {
+    suggestUrl: "fallback",
+    profileUrl: "fallback"
+  },
+  user: {
+    id: "71017",
+    name: "Kobetsu",
+    description: "Null Space",
+    walletAddress: "0xc1e07504817d6fed147fb503fd95966d2384ad8f",
+    avatar: {
+      assetType: "avatar",
+      tier: 1,
+      key: 3,
+      season: 1
+    },
+    banner: {
+      assetType: "banner",
+      tier: 1,
+      key: 2,
+      season: 1
+    },
+    tier: 3,
+    tierV2: 9,
+    hasCompletedWelcomeTour: true,
+    hasStreamingAccess: true,
+    overrideProfilePictureUrl: "https://cdn.simplehash.com/assets/e6d55a01f939ceb3210da4cf19c524ee567a0bcae426853dc346f95b10e56b3b.png",
+    lastTierSeen: 3,
+    badges: [
+      {
+        badge: {
+          id: 2,
+          type: "regular",
+          name: "Connect Twitter / X",
+          icon: "twitter",
+          description: "This badge is awarded to users who have connected their Twitter account.",
+          requirement: "Verify your Twitter account to claim this badge."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 3,
+          type: "regular",
+          name: "Fund Your Account",
+          icon: "fund-account",
+          description: "This badge is awarded to those who have funded their account.",
+          requirement: "Fund your account to claim this badge."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 4,
+          type: "regular",
+          name: "App Voter",
+          icon: "app-voter",
+          description: "This badge is awarded to those who have upvoted at least one app in the portal.",
+          requirement: "Upvote an app on the portal to claim this badge."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 5,
+          type: "regular",
+          name: "The Trader",
+          icon: "the-trader",
+          description: "This badge is awarded to users who trade on the Portal at least once.",
+          requirement: "Trade on the portal to claim this badge."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 1,
+          type: "regular",
+          name: "Connect Discord",
+          icon: "discord",
+          description: "This badge is awarded to users who have connected their Discord account.",
+          requirement: "Verify your Discord account to claim this badge."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 34,
+          type: "flash",
+          name: "The Black Star Badge",
+          icon: "black-star",
+          description: "This badge is awarded to those who mint a ticket to view Still a Black Star.",
+          requirement: "Mint a ticket to view Still a Black Star."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 16,
+          type: "secret",
+          name: "The Sock Master",
+          icon: "sock-master",
+          description: "The badge is awarded to those who own the mythical Abstract Socks.",
+          requirement: "Own a pair of Abstract Socks, on-chain to claim this badge."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 13,
+          type: "flash",
+          name: "Myriad Master",
+          icon: "myriad-master",
+          description: "This badge is awarded to users who has any amount of money on a market in Myriad.",
+          requirement: "Trade on a Myriad market to claim this badge."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 21,
+          type: "secret",
+          name: "The Onchain Hero",
+          icon: "och",
+          description: "This badge is awarded to those who participated in Season 1 of Onchain Heroes.",
+          requirement: "Participate in Season 1 of Onchain Heroes to earn this badge."
+        },
+        claimed: true
+      },
+      {
+        badge: {
+          id: 52,
+          type: "secret",
+          name: "The Master Rugpuller",
+          icon: "rugpull-bakery",
+          description: "This badge is awarded to those who baked 1,000 cookies on Rugpull Bakery S1.",
+          requirement: "Bake 1,000 cookies on Rugpull Bakery S1 to earn this badge."
+        },
+        claimed: true
+      }
+    ]
+  }
+};
+
 async function fetchJson(url) {
   const response = await fetch(url, {
     headers: {
@@ -60,6 +203,21 @@ function pickCandidate(candidates, query) {
   return normalized[0] || null;
 }
 
+function getFallbackProfile(query) {
+  const safeQuery = String(query || "").trim().toLowerCase();
+  const wallet = KOBETSU_FALLBACK.user.walletAddress.toLowerCase();
+
+  if (
+    safeQuery === "kobetsu" ||
+    safeQuery === wallet ||
+    safeQuery === "0xc1e07504817d6fed147fb503fd95966d2384ad8f"
+  ) {
+    return KOBETSU_FALLBACK;
+  }
+
+  return null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return sendJson(res, 405, { error: "Only GET requests are supported." });
@@ -77,7 +235,13 @@ export default async function handler(req, res) {
     const picked = pickCandidate(candidates, query);
 
     if (!picked?.id) {
-      return sendJson(res, 404, { error: "Profile not found from suggest source." });
+      const fallback = getFallbackProfile(query);
+      if (fallback) {
+        return sendJson(res, 200, fallback);
+      }
+      return sendJson(res, 404, {
+        error: "Profile not found from suggest source."
+      });
     }
 
     const profileUrl = `https://abscope.live/api/proxy/user/${picked.id}`;
@@ -110,6 +274,10 @@ export default async function handler(req, res) {
       }
     });
   } catch (error) {
+    const fallback = getFallbackProfile(query);
+    if (fallback) {
+      return sendJson(res, 200, fallback);
+    }
     return sendJson(res, 500, {
       error: error instanceof Error ? error.message : "Unexpected server error."
     });
