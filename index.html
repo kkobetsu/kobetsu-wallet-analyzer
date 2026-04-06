@@ -14,6 +14,7 @@
       --text: #122019;
       --muted: #61776c;
       --green: #21ce7a;
+      --green-strong: #12b768;
       --shadow: 0 22px 64px rgba(16, 35, 26, 0.09);
       --danger: #cb506b;
       --radius-xl: 30px;
@@ -97,7 +98,8 @@
     }
 
     .search-shell,
-    .panel {
+    .panel,
+    .badge-panel {
       border: 1px solid var(--line);
       border-radius: var(--radius-xl);
       background: var(--panel);
@@ -189,29 +191,31 @@
     }
 
     .status.visible { display: block; }
-
     .status.loading {
       color: #2d5a49;
       background: rgba(244, 255, 248, 0.96);
       border-color: rgba(33, 206, 122, 0.16);
     }
-
     .status.success {
       color: #1e5a39;
       background: rgba(243, 255, 248, 0.96);
       border-color: rgba(33, 206, 122, 0.2);
     }
-
     .status.error {
       color: var(--danger);
       background: rgba(255, 246, 248, 0.96);
       border-color: rgba(203, 80, 107, 0.18);
     }
 
+    .layout {
+      display: grid;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
     .profile-card {
       display: none;
       overflow: hidden;
-      margin-top: 18px;
     }
 
     .profile-card.visible {
@@ -391,7 +395,6 @@
       display: none;
       gap: 14px;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin-top: 18px;
     }
 
     .metrics-grid.visible {
@@ -423,7 +426,7 @@
   <main class="page">
     <div class="top-lane">
       <div class="runner-wrap">
-        <img class="runner-logo" src="./assets/abstract-glow.png" alt="Abstract logo" />
+        <img class="runner-logo" src="./assets/abstract-logo.jpg" alt="Abstract logo" />
         <img class="runner-dog" src="./assets/kobetsu-pfp.png" alt="Kobetsu dog" />
       </div>
     </div>
@@ -433,7 +436,7 @@
         <div class="search-row">
           <div class="input-wrap">
             <input id="query-input" type="text" placeholder="wallet veya nickname" autocomplete="off" spellcheck="false" />
-            <img src="./assets/abstract-glow.png" alt="Abstract" />
+            <img src="./assets/abstract-logo.jpg" alt="Abstract" />
           </div>
           <button class="primary-button" id="submit-button" type="submit">Search</button>
         </div>
@@ -530,6 +533,7 @@
         </div>
       </article>
     </section>
+
   </main>
 
   <script>
@@ -590,6 +594,12 @@
       }).format(value);
     }
 
+    function shortenAddress(value) {
+      const safe = String(value || "");
+      if (safe.length < 14) return safe;
+      return safe.slice(0, 8) + "..." + safe.slice(-6);
+    }
+
     function safeText(value, fallback = "-") {
       return value == null || value === "" ? fallback : String(value);
     }
@@ -599,7 +609,7 @@
       const badges = Array.isArray(user.badges) ? user.badges : [];
       const avatarUrl = user.overrideProfilePictureUrl || "./assets/kobetsu-pfp.png";
       const wallet = user.walletAddress || payload.walletAddress || "-";
-      const badgeCount = badges.filter((item) => item.claimed).length;
+      const badgeCount = user.badgeCount ?? badges.filter((item) => item.claimed).length;
       const bannerText = user.banner
         ? `S${safeText(user.banner.season)} / T${safeText(user.banner.tier)} / K${safeText(user.banner.key)}`
         : "-";
@@ -616,7 +626,7 @@
       profileFields.meta.textContent = `ID ${safeText(user.id)} · TierV2 ${safeText(user.tierV2)} · Welcome Tour ${user.hasCompletedWelcomeTour ? "Yes" : "No"}`;
       profileFields.portalLink.href = "https://portal.abs.xyz/profile/" + wallet;
       profileFields.badgeCount.textContent = formatNumber(badgeCount, 0);
-      profileFields.badgeFoot.textContent = badges.length + " total badge";
+      profileFields.badgeFoot.textContent = String(user.badgeCount ?? badges.length) + " total badge";
       profileFields.tierV2.textContent = safeText(user.tierV2);
       profileFields.streamingFoot.textContent = "Streaming: " + (user.hasStreamingAccess ? "Yes" : "No");
       profileFields.assetSummary.textContent = [user.avatar ? "Avatar" : null, user.banner ? "Banner" : null].filter(Boolean).join(" + ") || "-";
@@ -656,14 +666,7 @@
         setStatus("loading", "Profile, badge ve tier verileri aliniyor...");
 
         const profileResponse = await fetch("/api/profile?query=" + encodeURIComponent(query));
-        const profileText = await profileResponse.text();
-
-        let profilePayload;
-        try {
-          profilePayload = JSON.parse(profileText);
-        } catch {
-          throw new Error(profileText || "Profile response is not valid JSON.");
-        }
+        const profilePayload = await profileResponse.json();
 
         if (!profileResponse.ok) {
           throw new Error(profilePayload.error || "Profile request failed.");
@@ -675,16 +678,8 @@
         if (walletAddress) {
           try {
             const walletResponse = await fetch("/api/wallet?address=" + encodeURIComponent(walletAddress));
-            const walletText = await walletResponse.text();
-            let walletPayload;
-
-            try {
-              walletPayload = JSON.parse(walletText);
-            } catch {
-              walletPayload = null;
-            }
-
-            if (walletResponse.ok && walletPayload) {
+            const walletPayload = await walletResponse.json();
+            if (walletResponse.ok) {
               renderWalletMetrics(walletPayload);
             }
           } catch (_) {
