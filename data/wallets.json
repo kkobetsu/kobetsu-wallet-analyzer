@@ -2,70 +2,69 @@
   {
     "walletAddress": "0xC1E07504817D6fEd147FB503FD95966d2384ad8f",
     "username": "Kobetsu",
-    "collectedAt": "2026-04-06T18:44:57.873Z",
+    "collectedAt": "2026-04-06T20:52:18.866Z",
     "balance": {
-      "wei": "14340599413840607",
-      "formatted": "0.01434"
+      "wei": "13558087905840607",
+      "formatted": "0.013558"
     },
     "metrics": {
-      "allTimeTx": 22487,
-      "tx24h": 194,
-      "tx7d": 800,
-      "tx30d": 800,
-      "averageDailyTx": 51.83,
+      "allTimeTx": 22619,
+      "tx24h": 135,
+      "tx7d": 2706,
+      "tx30d": 8000,
+      "averageDailyTx": 52.12,
       "firstTransactionAt": "2025-01-27T21:53:00.000Z",
-      "lastTransactionAt": "2026-04-06T17:50:01.000Z",
-      "walletAgeDays": 433.8693452662037,
+      "lastTransactionAt": "2026-04-06T20:18:41.000Z",
+      "walletAgeDays": 433.9578572337963,
       "walletAgeText": "14.3 months"
     },
     "profile": {
+      "id": null,
       "name": "Kobetsu",
+      "description": "",
+      "walletAddress": "0xC1E07504817D6fEd147FB503FD95966d2384ad8f",
+      "avatar": null,
+      "banner": null,
       "tier": null,
-      "badgeCount": null,
-      "badgesSource": null
+      "tierV2": null,
+      "hasCompletedWelcomeTour": false,
+      "hasStreamingAccess": false,
+      "overrideProfilePictureUrl": null,
+      "lastTierSeen": null,
+      "badges": []
     },
     "appSummary": {
       "apps": [
         {
-          "name": "0x080f7ad3...a6c4",
-          "address": "0x080f7ad315ab65f02a821f072170d469d444a6c4",
-          "txCount": 393
+          "name": "Ether",
+          "address": "0x000000000000000000000000000000000000800a",
+          "txCount": 3991
         },
         {
-          "name": "0x10919961...a5f1",
-          "address": "0x10919961a413610cad2f3d73dc94b3f44146a5f1",
-          "txCount": 200
+          "name": "Bigcoin",
+          "address": "0xdf70075737e9f96b078ab4461eee3e055e061223",
+          "txCount": 6
         },
         {
-          "name": "0x35ffe9d9...c644",
-          "address": "0x35ffe9d966e35bd1b0e79f0d91e438701ea1c644",
-          "txCount": 189
+          "name": "MXP",
+          "address": "0xc0866d0e8ef9d8f463877becae600b93b441d827",
+          "txCount": 1
         },
         {
-          "name": "0x3b50de27...ce2a",
-          "address": "0x3b50de27506f0a8c1f4122a1e6f470009a76ce2a",
-          "txCount": 9
+          "name": "RETSBA",
+          "address": "0x52629ddbf28aa01aa22b994ec9c80273e4eb5b0a",
+          "txCount": 1
         },
         {
-          "name": "0xc4d5107a...a107",
-          "address": "0xc4d5107a91dd1271a4ea65a768a16aa64caca107",
-          "txCount": 4
-        },
-        {
-          "name": "0x89eb96a0...e33a",
-          "address": "0x89eb96a0a157f935de38d548b79af511d424e33a",
-          "txCount": 4
-        },
-        {
-          "name": "0x34ca1501...d081",
-          "address": "0x34ca1501fae231cc2ebc995ce013dbe882d7d081",
+          "name": "Grind",
+          "address": "0x1c26da604221466976beeb509698152ba8a3a13f",
           "txCount": 1
         }
       ],
       "mostUsed": {
-        "name": "0x080f7ad3...a6c4",
-        "address": "0x080f7ad315ab65f02a821f072170d469d444a6c4",
-        "txCount": 393
+        "name": "Ether",
+        "address": "0x000000000000000000000000000000000000800a",
+        "txCount": 3991
       }
     },
     "chart": [
@@ -73,61 +72,61 @@
         "date": "2026-03-24",
         "label": "03-24",
         "fullDate": "2026-03-24",
-        "count": 0
+        "count": 252
       },
       {
         "date": "2026-03-25",
         "label": "03-25",
         "fullDate": "2026-03-25",
-        "count": 0
+        "count": 201
       },
       {
         "date": "2026-03-26",
         "label": "03-26",
         "fullDate": "2026-03-26",
-        "count": 0
+        "count": 595
       },
       {
         "date": "2026-03-27",
         "label": "03-27",
         "fullDate": "2026-03-27",
-        "count": 0
+        "count": 303
       },
       {
         "date": "2026-03-28",
         "label": "03-28",
         "fullDate": "2026-03-28",
-        "count": 0
+        "count": 14
       },
       {
         "date": "2026-03-29",
         "label": "03-29",
         "fullDate": "2026-03-29",
-        "count": 0
+        "count": 894
       },
       {
         "date": "2026-03-30",
         "label": "03-30",
         "fullDate": "2026-03-30",
-        "count": 0
+        "count": 2701
       },
       {
         "date": "2026-03-31",
         "label": "03-31",
         "fullDate": "2026-03-31",
-        "count": 0
+        "count": 356
       },
       {
         "date": "2026-04-01",
         "label": "04-01",
         "fullDate": "2026-04-01",
-        "count": 0
+        "count": 448
       },
       {
         "date": "2026-04-02",
         "label": "04-02",
         "fullDate": "2026-04-02",
-        "count": 176
+        "count": 571
       },
       {
         "date": "2026-04-03",
@@ -151,7 +150,7 @@
         "date": "2026-04-06",
         "label": "04-06",
         "fullDate": "2026-04-06",
-        "count": 3
+        "count": 135
       }
     ]
   }
