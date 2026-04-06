@@ -107,4 +107,199 @@ function buildEmptyChart(days) {
 
   for (let index = days - 1; index >= 0; index -= 1) {
     const pointDate = new Date(now.getTime() - index * DAY_IN_MS);
-    const isoDate = pointDate
+    const isoDate = pointDate.toISOString().slice(0, 10);
+    points.push({
+      date: isoDate,
+      label: isoDate.slice(5),
+      fullDate: isoDate,
+      count: 0
+    });
+  }
+
+  return points;
+}
+
+function calculateWalletAge(firstTransactionAt, nowMs) {
+  if (!firstTransactionAt) {
+    return { walletAgeDays: null, walletAgeText: "No history" };
+  }
+
+  const diffMs = Math.max(0, nowMs - new Date(firstTransactionAt).getTime());
+  const walletAgeDays = diffMs / DAY_IN_MS;
+
+  if (walletAgeDays < 1) {
+    return {
+      walletAgeDays,
+      walletAgeText: `${Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)))} hours`
+    };
+  }
+
+  if (walletAgeDays < 30) {
+    return {
+      walletAgeDays,
+      walletAgeText: `${Math.floor(walletAgeDays)} days`
+    };
+  }
+
+  return {
+    walletAgeDays,
+    walletAgeText: `${(walletAgeDays / 30.4375).toFixed(1)} months`
+  };
+}
+
+async function getWalletCoreMetrics(address) {
+  const [nonceHex, balanceHex] = await Promise.all([
+    rpcCall("eth_getTransactionCount", [address, "latest"]),
+    rpcCall("eth_getBalance", [address, "latest"])
+  ]);
+
+  return {
+    allTimeTx: Number.parseInt(nonceHex, 16),
+    balanceWei: BigInt(balanceHex).toString(),
+    balanceFormatted: formatEther(balanceHex)
+  };
+}
+
+async function getExplorerSummary(address) {
+  const newest = await fetchAbscanTransactions(address, {
+    sort: "desc",
+    page: 1,
+    offset: PAGE_SIZE
+  });
+
+  const oldest = await fetchAbscanTransactions(address, {
+    sort: "asc",
+    page: 1,
+    offset: 1
+  });
+
+  const chartPoints = buildEmptyChart(14);
+  const chartLookup = new Map(chartPoints.map((point) => [point.date, point]));
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const cutoff24h = nowSeconds - DAY_IN_SECONDS;
+  const cutoff7d = nowSeconds - 7 * DAY_IN_SECONDS;
+  const cutoff30d = nowSeconds - 30 * DAY_IN_SECONDS;
+
+  let tx24h = 0;
+  let tx7d = 0;
+  let tx30d = 0;
+  const recentTransactions = [];
+
+  function countBatch(batch) {
+    for (const tx of batch) {
+      const timestamp = Number(tx.timeStamp);
+      if (!Number.isFinite(timestamp)) continue;
+
+      if (timestamp >= cutoff24h) tx24h += 1;
+      if (timestamp >= cutoff7d) {
+        tx7d += 1;
+        recentTransactions.push(tx);
+      }
+      if (timestamp >= cutoff30d) tx30d += 1;
+
+      const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
+      if (chartLookup.has(isoDate)) chartLookup.get(isoDate).count += 1;
+    }
+  }
+
+  countBatch(newest);
+
+  let stop = newest.some((tx) => Number(tx.timeStamp) < cutoff30d);
+
+  for (let page = 2; page <= MAX_PAGES && !stop; page += 1) {
+    const batch = await fetchAbscanTransactions(address, {
+      sort: "desc",
+      page,
+      offset: PAGE_SIZE
+    });
+
+    if (batch.length === 0) break;
+    countBatch(batch);
+
+    if (batch.some((tx) => Number(tx.timeStamp) < cutoff30d) || batch.length < PAGE_SIZE) {
+      stop = true;
+    }
+  }
+
+  return {
+    tx24h,
+    tx7d,
+    tx30d,
+    firstTransactionAt: oldest[0] ? new Date(Number(oldest[0].timeStamp) * 1000).toISOString() : null,
+    lastTransactionAt: newest[0] ? new Date(Number(newest[0].timeStamp) * 1000).toISOString() : null,
+    recentTransactions,
+    dailyChart: chartPoints
+  };
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return sendJson(res, 405, { error: "Only GET requests are supported." });
+  }
+
+  const address = String(req.query.address || "").trim();
+  if (!isValidAddress(address)) {
+    return sendJson(res, 400, { error: "Please provide a valid wallet address." });
+  }
+
+  const cached = cache.get(address);
+  if (cached && Date.now() - cached.createdAt < CACHE_TTL_MS) {
+    return sendJson(res, 200, cached.payload);
+  }
+
+  try {
+    const [coreMetrics, explorerSummary] = await Promise.all([
+      getWalletCoreMetrics(address),
+      getExplorerSummary(address)
+    ]);
+
+    const ageMetrics = calculateWalletAge(explorerSummary.firstTransactionAt, Date.now());
+    const averageDailyTx = ageMetrics.walletAgeDays && ageMetrics.walletAgeDays > 0
+      ? Number((coreMetrics.allTimeTx / ageMetrics.walletAgeDays).toFixed(2))
+      : coreMetrics.allTimeTx > 0 ? coreMetrics.allTimeTx : 0;
+
+    const payload = {
+      walletAddress: address,
+      profile: {
+        name: "Unknown",
+        tier: "Tier unavailable",
+        badgeCount: null,
+        badgesSource: "Portal profile source not connected yet"
+      },
+      network: {
+        name: "Abstract Mainnet",
+        chainId: CHAIN_ID
+      },
+      balance: {
+        wei: coreMetrics.balanceWei,
+        formatted: coreMetrics.balanceFormatted
+      },
+      metrics: {
+        allTimeTx: coreMetrics.allTimeTx,
+        tx24h: explorerSummary.tx24h,
+        tx7d: explorerSummary.tx7d,
+        tx30d: explorerSummary.tx30d,
+        averageDailyTx,
+        firstTransactionAt: explorerSummary.firstTransactionAt,
+        lastTransactionAt: explorerSummary.lastTransactionAt,
+        walletAgeDays: ageMetrics.walletAgeDays,
+        walletAgeText: ageMetrics.walletAgeText
+      },
+      transactionWindow: {
+        dailyChart: explorerSummary.dailyChart,
+        recentTransactions: explorerSummary.recentTransactions
+      }
+    };
+
+    cache.set(address, {
+      createdAt: Date.now(),
+      payload
+    });
+
+    return sendJson(res, 200, payload);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unexpected server error.";
+    return sendJson(res, 500, { error: message });
+  }
+}
