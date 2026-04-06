@@ -20,15 +20,13 @@ export default async function handler(req, res) {
     return sendJson(res, 405, { error: "Only GET requests are supported." });
   }
 
-  const address = String(req.query.address || "").trim();
-
+  const address = String(req.query.address || req.query.query || "").trim();
   if (!isValidAddress(address)) {
     return sendJson(res, 400, { error: "Please provide a valid wallet address." });
   }
 
   try {
     const wallets = await loadWalletData();
-
     const record = wallets.find(
       (item) => String(item.walletAddress || "").toLowerCase() === address.toLowerCase()
     );
@@ -41,27 +39,9 @@ export default async function handler(req, res) {
 
     return sendJson(res, 200, {
       walletAddress: record.walletAddress,
-      profile: record.profile || {
-        name: record.username || "Unknown",
-        tier: "Tier unavailable",
-        badgeCount: null,
-        badgesSource: "Not connected"
-      },
-      balance: record.balance || {
-        wei: "0",
-        formatted: "0"
-      },
-      metrics: record.metrics || {
-        allTimeTx: 0,
-        tx24h: 0,
-        tx7d: 0,
-        tx30d: 0,
-        averageDailyTx: 0,
-        firstTransactionAt: null,
-        lastTransactionAt: null,
-        walletAgeDays: null,
-        walletAgeText: "-"
-      },
+      profile: record.profile,
+      balance: record.balance,
+      metrics: record.metrics,
       transactionWindow: {
         dailyChart: record.chart || [],
         recentTransactions: []
