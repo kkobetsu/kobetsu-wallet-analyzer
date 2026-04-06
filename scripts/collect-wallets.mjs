@@ -1,17 +1,16 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const ABSTRACT_RPC_URL = process.env.ABSTRACT_RPC_URL || "https://api.mainnet.abs.xyz";
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
-const CHAIN_ID = 2741;
-const PAGE_SIZE = 100;
-const MAX_PAGES = 8;
-const DELAY_MS = 450;
+const ABSCAN_API_BASE = "https://api.abscan.org/api";
+const ABSCAN_API_KEY = process.env.ABSCAN_API_KEY || process.env.ETHERSCAN_API_KEY;
+const PAGE_SIZE = 200;
+const MAX_PAGES = 10;
+const DELAY_MS = 400;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
 
-if (!ETHERSCAN_API_KEY) {
-  throw new Error("ETHERSCAN_API_KEY is missing.");
+if (!ABSCAN_API_KEY) {
+  throw new Error("ABSCAN_API_KEY is missing.");
 }
 
 function sleep(ms) {
@@ -60,6 +59,47 @@ async function rpcCall(method, params) {
   return payload.result;
 }
 
+async function fetchAbscan(moduleName, action, address, options = {}) {
+  const url = new URL(ABSCAN_API_BASE);
+  url.searchParams.set("module", moduleName);
+  url.searchParams.set("action", action);
+  url.searchParams.set("address", address);
+  url.searchParams.set("startblock", String(options.startblock || 0));
+  url.searchParams.set("endblock", String(options.endblock || 99999999));
+  url.searchParams.set("page", String(options.page || 1));
+  url.searchParams.set("offset", String(options.offset || PAGE_SIZE));
+  url.searchParams.set("sort", options.sort || "desc");
+  url.searchParams.set("apikey", ABSCAN_API_KEY);
+
+  const response = await fetch(url.toString());
+  if (!response.ok) {
+    throw new Error(`Abscan error: HTTP ${response.status}`);
+  }
+
+  const payload = await response.json();
+
+  if (payload.status === "0") {
+    if (payload.message === "No transactions found" || payload.result === "No transactions found") {
+      return [];
+    }
+
+    const reason = typeof payload.result === "string" ? payload.result : payload.message;
+
+    if (/rate limit|max rate limit|too many/i.test(reason || "")) {
+      throw new Error("Abscan rate limit reached.");
+    }
+
+    throw new Error(reason || `Invalid Abscan response for ${action}`);
+  }
+
+  if (!Array.isArray(payload.result)) {
+    throw new Error(`Abscan result format is invalid for ${action}`);
+  }
+
+  await sleep(DELAY_MS);
+  return payload.result;
+}
+
 async function getWalletCoreMetrics(address) {
   const [nonceHex, balanceHex] = await Promise.all([
     rpcCall("eth_getTransactionCount", [address, "latest"]),
@@ -71,47 +111,6 @@ async function getWalletCoreMetrics(address) {
     balanceWei: BigInt(balanceHex).toString(),
     balanceFormatted: formatEther(balanceHex)
   };
-}
-
-async function fetchExplorerTransactions(address, options = {}) {
-  const url = new URL(ETHERSCAN_API_BASE);
-  url.searchParams.set("chainid", String(CHAIN_ID));
-  url.searchParams.set("module", "account");
-  url.searchParams.set("action", "txlist");
-  url.searchParams.set("address", address);
-  url.searchParams.set("startblock", "0");
-  url.searchParams.set("endblock", "99999999");
-  url.searchParams.set("page", String(options.page || 1));
-  url.searchParams.set("offset", String(options.offset || PAGE_SIZE));
-  url.searchParams.set("sort", options.sort || "desc");
-  url.searchParams.set("apikey", ETHERSCAN_API_KEY);
-
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw new Error(`Explorer error: HTTP ${response.status}`);
-  }
-
-  const payload = await response.json();
-
-  if (payload.status === "0") {
-    if (payload.message === "No transactions found") {
-      return [];
-    }
-
-    const reason = typeof payload.result === "string" ? payload.result : payload.message;
-    if (/rate limit|max calls per sec|too many/i.test(reason || "")) {
-      throw new Error("Explorer rate limit reached.");
-    }
-
-    throw new Error(reason || "Invalid explorer response.");
-  }
-
-  if (!Array.isArray(payload.result)) {
-    throw new Error("Explorer result format is invalid.");
-  }
-
-  await sleep(DELAY_MS);
-  return payload.result;
 }
 
 function calculateWalletAge(firstTransactionAt, nowMs) {
@@ -167,10 +166,8 @@ function buildAppSummary(transactions, appMap) {
   const groups = new Map();
 
   for (const tx of transactions) {
-    const to = String(tx.to || "").toLowerCase();
-    if (!to) {
-      continue;
-    }
+    const to = String(tx.to || tx.contractAddress || "").toLowerCase();
+    if (!to) continue;
 
     const name = appMap[to] || `${to.slice(0, 10)}...${to.slice(-4)}`;
     const current = groups.get(name) || {
@@ -185,23 +182,46 @@ function buildAppSummary(transactions, appMap) {
 
   return Array.from(groups.values())
     .sort((a, b) => b.txCount - a.txCount)
-    .slice(0, 10);
+    .slice(0, 12);
 }
 
-async function collectWallet(address, username, appMap) {
-  const core = await getWalletCoreMetrics(address);
-  const firstTxList = await fetchExplorerTransactions(address, {
+function buildBadgeSummary(nftTransfers) {
+  const uniqueContracts = new Map();
+
+  for (const tx of nftTransfers) {
+    const contract = String(tx.contractAddress || "").toLowerCase();
+    if (!contract) continue;
+
+    const current = uniqueContracts.get(contract) || {
+      contractAddress: contract,
+      tokenName: tx.tokenName || "Unknown NFT",
+      tokenSymbol: tx.tokenSymbol || "",
+      count: 0
+    };
+
+    current.count += 1;
+    uniqueContracts.set(contract, current);
+  }
+
+  const collections = Array.from(uniqueContracts.values()).sort((a, b) => b.count - a.count);
+
+  return {
+    badgeCount: collections.length,
+    collections
+  };
+}
+
+async function fetchFirstTransaction(address) {
+  const first = await fetchAbscan("account", "txlist", address, {
     sort: "asc",
     page: 1,
     offset: 1
   });
-  const firstTx = firstTxList[0] || null;
 
-  const firstTransactionAt = firstTx
-    ? new Date(Number(firstTx.timeStamp) * 1000).toISOString()
-    : null;
+  return first[0] || null;
+}
 
-  const age = calculateWalletAge(firstTransactionAt, Date.now());
+async function fetchRecentTransactions(address) {
   const chart = buildEmptyChart(14);
   const chartLookup = new Map(chart.map((item) => [item.date, item]));
 
@@ -218,15 +238,13 @@ async function collectWallet(address, username, appMap) {
   const recentTransactions = [];
 
   for (let page = 1; page <= MAX_PAGES && !stop; page += 1) {
-    const batch = await fetchExplorerTransactions(address, {
+    const batch = await fetchAbscan("account", "txlist", address, {
       sort: "desc",
       page,
       offset: PAGE_SIZE
     });
 
-    if (batch.length === 0) {
-      break;
-    }
+    if (batch.length === 0) break;
 
     if (!lastTransactionAt) {
       lastTransactionAt = new Date(Number(batch[0].timeStamp) * 1000).toISOString();
@@ -234,13 +252,9 @@ async function collectWallet(address, username, appMap) {
 
     for (const tx of batch) {
       const timestamp = Number(tx.timeStamp);
-      if (!Number.isFinite(timestamp)) {
-        continue;
-      }
+      if (!Number.isFinite(timestamp)) continue;
 
-      if (timestamp >= cutoff24h) {
-        tx24h += 1;
-      }
+      if (timestamp >= cutoff24h) tx24h += 1;
 
       if (timestamp >= cutoff7d) {
         tx7d += 1;
@@ -259,12 +273,43 @@ async function collectWallet(address, username, appMap) {
       }
     }
 
-    if (batch.length < PAGE_SIZE) {
-      break;
-    }
+    if (batch.length < PAGE_SIZE) break;
   }
 
-  const apps = buildAppSummary(recentTransactions, appMap);
+  return {
+    tx24h,
+    tx7d,
+    tx30d,
+    lastTransactionAt,
+    recentTransactions,
+    chart
+  };
+}
+
+async function fetchNftActivity(address) {
+  const nftTransfers = await fetchAbscan("account", "tokennfttx", address, {
+    sort: "desc",
+    page: 1,
+    offset: PAGE_SIZE
+  });
+
+  return buildBadgeSummary(nftTransfers);
+}
+
+async function collectWallet(address, username, appMap) {
+  const [core, firstTx, recent, nft] = await Promise.all([
+    getWalletCoreMetrics(address),
+    fetchFirstTransaction(address),
+    fetchRecentTransactions(address),
+    fetchNftActivity(address)
+  ]);
+
+  const firstTransactionAt = firstTx
+    ? new Date(Number(firstTx.timeStamp) * 1000).toISOString()
+    : null;
+
+  const age = calculateWalletAge(firstTransactionAt, Date.now());
+  const apps = buildAppSummary(recent.recentTransactions, appMap);
   const mostUsedApp = apps[0] || null;
 
   return {
@@ -277,28 +322,29 @@ async function collectWallet(address, username, appMap) {
     },
     metrics: {
       allTimeTx: core.allTimeTx,
-      tx24h,
-      tx7d,
-      tx30d,
+      tx24h: recent.tx24h,
+      tx7d: recent.tx7d,
+      tx30d: recent.tx30d,
       averageDailyTx: age.walletAgeDays && age.walletAgeDays > 0
         ? Number((core.allTimeTx / age.walletAgeDays).toFixed(2))
         : core.allTimeTx > 0 ? core.allTimeTx : 0,
       firstTransactionAt,
-      lastTransactionAt,
+      lastTransactionAt: recent.lastTransactionAt,
       walletAgeDays: age.walletAgeDays,
       walletAgeText: age.walletAgeText
     },
     profile: {
       name: username || "Unknown",
-      tier: null,
-      badgeCount: null,
-      badgesSource: null
+      tier: nft.badgeCount >= 40 ? "Gold III" : nft.badgeCount >= 20 ? "Silver" : nft.badgeCount > 0 ? "Bronze" : "Unranked",
+      badgeCount: nft.badgeCount,
+      badgesSource: "Abscan NFT transfer activity"
     },
     appSummary: {
       apps,
       mostUsed: mostUsedApp
     },
-    chart
+    badgeSummary: nft,
+    chart: recent.chart
   };
 }
 
