@@ -1,16 +1,19 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const ABSTRACT_RPC_URL = process.env.ABSTRACT_RPC_URL || "https://api.mainnet.abs.xyz";
-const ABSCAN_API_BASE = "https://api.abscan.org/api";
-const ABSCAN_API_KEY = process.env.ABSCAN_API_KEY || process.env.ETHERSCAN_API_KEY;
-const PAGE_SIZE = 200;
-const MAX_PAGES = 10;
-const DELAY_MS = 400;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
+const CHAIN_ID = 2741;
+
+const PAGE_SIZE = 1000;
+const MAX_TX_PAGES = 8;
+const MAX_TOKEN_PAGES = 4;
+const REQUEST_DELAY_MS = 250;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
 
-if (!ABSCAN_API_KEY) {
-  throw new Error("ABSCAN_API_KEY is missing.");
+if (!ETHERSCAN_API_KEY) {
+  throw new Error("ETHERSCAN_API_KEY is missing.");
 }
 
 function sleep(ms) {
@@ -30,8 +33,14 @@ function formatEther(weiHex) {
   return fractionText ? `${whole}.${fractionText}` : whole.toString();
 }
 
-async function readJson(path) {
-  const raw = await readFile(path, "utf8");
+function shortenAddress(address) {
+  const safe = String(address || "");
+  if (safe.length < 14) return safe;
+  return `${safe.slice(0, 8)}...${safe.slice(-4)}`;
+}
+
+async function readJson(filePath) {
+  const raw = await readFile(filePath, "utf8");
   return JSON.parse(raw);
 }
 
@@ -59,44 +68,43 @@ async function rpcCall(method, params) {
   return payload.result;
 }
 
-async function fetchAbscan(moduleName, action, address, options = {}) {
-  const url = new URL(ABSCAN_API_BASE);
-  url.searchParams.set("module", moduleName);
+async function fetchEtherscanAccount(action, extraParams = {}) {
+  const url = new URL(ETHERSCAN_API_BASE);
+  url.searchParams.set("chainid", String(CHAIN_ID));
+  url.searchParams.set("module", "account");
   url.searchParams.set("action", action);
-  url.searchParams.set("address", address);
-  url.searchParams.set("startblock", String(options.startblock || 0));
-  url.searchParams.set("endblock", String(options.endblock || 99999999));
-  url.searchParams.set("page", String(options.page || 1));
-  url.searchParams.set("offset", String(options.offset || PAGE_SIZE));
-  url.searchParams.set("sort", options.sort || "desc");
-  url.searchParams.set("apikey", ABSCAN_API_KEY);
+  url.searchParams.set("apikey", ETHERSCAN_API_KEY);
+
+  for (const [key, value] of Object.entries(extraParams)) {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
+  }
 
   const response = await fetch(url.toString());
   if (!response.ok) {
-    throw new Error(`Abscan error: HTTP ${response.status}`);
+    throw new Error(`Etherscan error: HTTP ${response.status}`);
   }
 
   const payload = await response.json();
 
   if (payload.status === "0") {
-    if (payload.message === "No transactions found" || payload.result === "No transactions found") {
+    if (
+      payload.message === "No transactions found" ||
+      payload.result === "No transactions found"
+    ) {
       return [];
     }
 
     const reason = typeof payload.result === "string" ? payload.result : payload.message;
-
-    if (/rate limit|max rate limit|too many/i.test(reason || "")) {
-      throw new Error("Abscan rate limit reached.");
-    }
-
-    throw new Error(reason || `Invalid Abscan response for ${action}`);
+    throw new Error(reason || `Invalid Etherscan response for ${action}`);
   }
 
   if (!Array.isArray(payload.result)) {
-    throw new Error(`Abscan result format is invalid for ${action}`);
+    throw new Error(`Invalid Etherscan result format for ${action}`);
   }
 
-  await sleep(DELAY_MS);
+  await sleep(REQUEST_DELAY_MS);
   return payload.result;
 }
 
@@ -111,6 +119,24 @@ async function getWalletCoreMetrics(address) {
     balanceWei: BigInt(balanceHex).toString(),
     balanceFormatted: formatEther(balanceHex)
   };
+}
+
+function buildEmptyChart(days) {
+  const points = [];
+  const now = new Date();
+
+  for (let index = days - 1; index >= 0; index -= 1) {
+    const pointDate = new Date(now.getTime() - index * DAY_IN_MS);
+    const isoDate = pointDate.toISOString().slice(0, 10);
+    points.push({
+      date: isoDate,
+      label: isoDate.slice(5),
+      fullDate: isoDate,
+      count: 0
+    });
+  }
+
+  return points;
 }
 
 function calculateWalletAge(firstTransactionAt, nowMs) {
@@ -144,109 +170,180 @@ function calculateWalletAge(firstTransactionAt, nowMs) {
   };
 }
 
-function buildEmptyChart(days) {
-  const points = [];
-  const now = new Date();
-
-  for (let index = days - 1; index >= 0; index -= 1) {
-    const pointDate = new Date(now.getTime() - index * DAY_IN_MS);
-    const isoDate = pointDate.toISOString().slice(0, 10);
-    points.push({
-      date: isoDate,
-      label: isoDate.slice(5),
-      fullDate: isoDate,
-      count: 0
-    });
+function collectCandidates(value, results = []) {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectCandidates(item, results);
+    }
+    return results;
   }
 
-  return points;
+  if (!value || typeof value !== "object") {
+    return results;
+  }
+
+  const hasId = value.id !== undefined || value.userId !== undefined;
+  const hasName = value.name !== undefined || value.username !== undefined;
+  const hasWallet =
+    value.walletAddress !== undefined ||
+    value.wallet !== undefined ||
+    value.address !== undefined;
+
+  if (hasId && (hasName || hasWallet)) {
+    results.push(value);
+  }
+
+  for (const nested of Object.values(value)) {
+    collectCandidates(nested, results);
+  }
+
+  return results;
 }
 
-function buildAppSummary(transactions, appMap) {
-  const groups = new Map();
-
-  for (const tx of transactions) {
-    const to = String(tx.to || tx.contractAddress || "").toLowerCase();
-    if (!to) continue;
-
-    const name = appMap[to] || `${to.slice(0, 10)}...${to.slice(-4)}`;
-    const current = groups.get(name) || {
-      name,
-      address: to,
-      txCount: 0
-    };
-
-    current.txCount += 1;
-    groups.set(name, current);
-  }
-
-  return Array.from(groups.values())
-    .sort((a, b) => b.txCount - a.txCount)
-    .slice(0, 12);
-}
-
-function buildBadgeSummary(nftTransfers) {
-  const uniqueContracts = new Map();
-
-  for (const tx of nftTransfers) {
-    const contract = String(tx.contractAddress || "").toLowerCase();
-    if (!contract) continue;
-
-    const current = uniqueContracts.get(contract) || {
-      contractAddress: contract,
-      tokenName: tx.tokenName || "Unknown NFT",
-      tokenSymbol: tx.tokenSymbol || "",
-      count: 0
-    };
-
-    current.count += 1;
-    uniqueContracts.set(contract, current);
-  }
-
-  const collections = Array.from(uniqueContracts.values()).sort((a, b) => b.count - a.count);
-
+function normalizeCandidate(candidate) {
   return {
-    badgeCount: collections.length,
-    collections
+    id: candidate?.id ?? candidate?.userId ?? candidate?.user?.id ?? null,
+    name: candidate?.name ?? candidate?.username ?? candidate?.user?.name ?? "",
+    walletAddress:
+      candidate?.walletAddress ??
+      candidate?.address ??
+      candidate?.wallet ??
+      candidate?.user?.walletAddress ??
+      ""
   };
 }
 
-async function fetchFirstTransaction(address) {
-  const first = await fetchAbscan("account", "txlist", address, {
-    sort: "asc",
-    page: 1,
-    offset: 1
-  });
+function pickCandidate(candidates, query, walletAddress) {
+  const safeQuery = String(query || "").trim().toLowerCase();
+  const safeWallet = String(walletAddress || "").trim().toLowerCase();
+  const normalized = candidates.map(normalizeCandidate).filter((item) => item.id != null);
 
-  return first[0] || null;
+  const exactWallet = normalized.find(
+    (item) => String(item.walletAddress).toLowerCase() === safeWallet
+  );
+  if (exactWallet) return exactWallet;
+
+  const exactQueryWallet = normalized.find(
+    (item) => String(item.walletAddress).toLowerCase() === safeQuery
+  );
+  if (exactQueryWallet) return exactQueryWallet;
+
+  const exactName = normalized.find(
+    (item) => String(item.name).toLowerCase() === safeQuery
+  );
+  if (exactName) return exactName;
+
+  return normalized[0] || null;
 }
 
-async function fetchRecentTransactions(address) {
-  const chart = buildEmptyChart(14);
-  const chartLookup = new Map(chart.map((item) => [item.date, item]));
+async function fetchJsonMaybe(url) {
+  const response = await fetch(url, {
+    headers: { accept: "application/json" }
+  });
 
+  const text = await response.text();
+  let payload;
+
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    throw new Error(`Invalid JSON from ${url}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(payload.error || payload.message || `Request failed: ${response.status}`);
+  }
+
+  return payload;
+}
+
+async function fetchProfile(username, walletAddress) {
+  const queries = [username, walletAddress].filter(Boolean);
+
+  for (const query of queries) {
+    try {
+      const suggestUrl = `https://abscope.live/api/suggest?query=${encodeURIComponent(query)}`;
+      const suggestPayload = await fetchJsonMaybe(suggestUrl);
+      const candidates = collectCandidates(suggestPayload);
+      const picked = pickCandidate(candidates, query, walletAddress);
+
+      if (!picked?.id) {
+        continue;
+      }
+
+      const profileUrl = `https://abscope.live/api/proxy/user/${picked.id}`;
+      const profilePayload = await fetchJsonMaybe(profileUrl);
+      const user = profilePayload?.user;
+
+      if (!user) {
+        continue;
+      }
+
+      return {
+        id: user.id,
+        name: user.name || username || "Unknown",
+        description: user.description || "",
+        walletAddress: user.walletAddress || walletAddress,
+        avatar: user.avatar || null,
+        banner: user.banner || null,
+        tier: user.tier ?? null,
+        tierV2: user.tierV2 ?? null,
+        hasCompletedWelcomeTour: Boolean(user.hasCompletedWelcomeTour),
+        hasStreamingAccess: Boolean(user.hasStreamingAccess),
+        overrideProfilePictureUrl: user.overrideProfilePictureUrl || null,
+        lastTierSeen: user.lastTierSeen ?? null,
+        badges: Array.isArray(user.badges) ? user.badges : []
+      };
+    } catch (_) {
+    }
+  }
+
+  return {
+    id: null,
+    name: username || "Unknown",
+    description: "",
+    walletAddress,
+    avatar: null,
+    banner: null,
+    tier: null,
+    tierV2: null,
+    hasCompletedWelcomeTour: false,
+    hasStreamingAccess: false,
+    overrideProfilePictureUrl: null,
+    lastTierSeen: null,
+    badges: []
+  };
+}
+
+async function fetchTransactionMetrics(address) {
   const nowSeconds = Math.floor(Date.now() / 1000);
   const cutoff24h = nowSeconds - DAY_IN_SECONDS;
   const cutoff7d = nowSeconds - 7 * DAY_IN_SECONDS;
   const cutoff30d = nowSeconds - 30 * DAY_IN_SECONDS;
+  const cutoff14d = nowSeconds - 14 * DAY_IN_SECONDS;
+
+  const chart = buildEmptyChart(14);
+  const chartLookup = new Map(chart.map((item) => [item.date, item]));
 
   let tx24h = 0;
   let tx7d = 0;
   let tx30d = 0;
+  let firstTransactionAt = null;
   let lastTransactionAt = null;
-  let stop = false;
-  const recentTransactions = [];
 
-  for (let page = 1; page <= MAX_PAGES && !stop; page += 1) {
-    const batch = await fetchAbscan("account", "txlist", address, {
-      sort: "desc",
+  for (let page = 1; page <= MAX_TX_PAGES; page += 1) {
+    const batch = await fetchEtherscanAccount("txlist", {
+      address,
+      startblock: 0,
+      endblock: 99999999,
       page,
-      offset: PAGE_SIZE
+      offset: PAGE_SIZE,
+      sort: "desc"
     });
 
     if (batch.length === 0) break;
 
-    if (!lastTransactionAt) {
+    if (!lastTransactionAt && batch[0]?.timeStamp) {
       lastTransactionAt = new Date(Number(batch[0].timeStamp) * 1000).toISOString();
     }
 
@@ -255,66 +352,110 @@ async function fetchRecentTransactions(address) {
       if (!Number.isFinite(timestamp)) continue;
 
       if (timestamp >= cutoff24h) tx24h += 1;
+      if (timestamp >= cutoff7d) tx7d += 1;
+      if (timestamp >= cutoff30d) tx30d += 1;
 
-      if (timestamp >= cutoff7d) {
-        tx7d += 1;
-        recentTransactions.push(tx);
-      }
-
-      if (timestamp >= cutoff30d) {
-        tx30d += 1;
-      } else {
-        stop = true;
-      }
-
-      const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
-      if (chartLookup.has(isoDate)) {
-        chartLookup.get(isoDate).count += 1;
+      if (timestamp >= cutoff14d) {
+        const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
+        const point = chartLookup.get(isoDate);
+        if (point) point.count += 1;
       }
     }
 
-    if (batch.length < PAGE_SIZE) break;
+    if (batch.some((tx) => Number(tx.timeStamp) < cutoff30d) || batch.length < PAGE_SIZE) {
+      break;
+    }
+  }
+
+  const oldestBatch = await fetchEtherscanAccount("txlist", {
+    address,
+    startblock: 0,
+    endblock: 99999999,
+    page: 1,
+    offset: 1,
+    sort: "asc"
+  });
+
+  if (oldestBatch[0]?.timeStamp) {
+    firstTransactionAt = new Date(Number(oldestBatch[0].timeStamp) * 1000).toISOString();
   }
 
   return {
     tx24h,
     tx7d,
     tx30d,
-    lastTransactionAt,
-    recentTransactions,
-    chart
+    chart,
+    firstTransactionAt,
+    lastTransactionAt
   };
 }
 
-async function fetchNftActivity(address) {
-  const nftTransfers = await fetchAbscan("account", "tokennfttx", address, {
-    sort: "desc",
-    page: 1,
-    offset: PAGE_SIZE
-  });
+async function fetchTokenActivity(address, appMap) {
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const cutoff30d = nowSeconds - 30 * DAY_IN_SECONDS;
+  const groups = new Map();
 
-  return buildBadgeSummary(nftTransfers);
+  for (let page = 1; page <= MAX_TOKEN_PAGES; page += 1) {
+    const batch = await fetchEtherscanAccount("tokentx", {
+      address,
+      startblock: 0,
+      endblock: 99999999,
+      page,
+      offset: PAGE_SIZE,
+      sort: "desc"
+    });
+
+    if (batch.length === 0) break;
+
+    for (const tx of batch) {
+      const timestamp = Number(tx.timeStamp);
+      if (!Number.isFinite(timestamp)) continue;
+      if (timestamp < cutoff30d) continue;
+
+      const contract = String(tx.contractAddress || "").toLowerCase();
+      if (!contract) continue;
+
+      const existing = groups.get(contract) || {
+        name: appMap[contract] || tx.tokenName || shortenAddress(contract),
+        address: contract,
+        txCount: 0
+      };
+
+      existing.txCount += 1;
+      groups.set(contract, existing);
+    }
+
+    if (batch.some((tx) => Number(tx.timeStamp) < cutoff30d) || batch.length < PAGE_SIZE) {
+      break;
+    }
+  }
+
+  const apps = Array.from(groups.values())
+    .sort((a, b) => b.txCount - a.txCount)
+    .slice(0, 12);
+
+  return {
+    apps,
+    mostUsed: apps[0] || null
+  };
 }
 
-async function collectWallet(address, username, appMap) {
-  const [core, firstTx, recent, nft] = await Promise.all([
+async function collectWallet(item, appMap) {
+  const address = item.wallet;
+  const username = item.username || "Unknown";
+
+  const [core, profile, txMetrics, tokenActivity] = await Promise.all([
     getWalletCoreMetrics(address),
-    fetchFirstTransaction(address),
-    fetchRecentTransactions(address),
-    fetchNftActivity(address)
+    fetchProfile(username, address),
+    fetchTransactionMetrics(address),
+    fetchTokenActivity(address, appMap)
   ]);
 
-  const firstTransactionAt = firstTx
-    ? new Date(Number(firstTx.timeStamp) * 1000).toISOString()
-    : null;
-
-  const age = calculateWalletAge(firstTransactionAt, Date.now());
-  const apps = buildAppSummary(recent.recentTransactions, appMap);
-  const mostUsedApp = apps[0] || null;
+  const age = calculateWalletAge(txMetrics.firstTransactionAt, Date.now());
 
   return {
     walletAddress: address,
-    username: username || "Unknown",
+    username,
     collectedAt: new Date().toISOString(),
     balance: {
       wei: core.balanceWei,
@@ -322,40 +463,34 @@ async function collectWallet(address, username, appMap) {
     },
     metrics: {
       allTimeTx: core.allTimeTx,
-      tx24h: recent.tx24h,
-      tx7d: recent.tx7d,
-      tx30d: recent.tx30d,
-      averageDailyTx: age.walletAgeDays && age.walletAgeDays > 0
-        ? Number((core.allTimeTx / age.walletAgeDays).toFixed(2))
-        : core.allTimeTx > 0 ? core.allTimeTx : 0,
-      firstTransactionAt,
-      lastTransactionAt: recent.lastTransactionAt,
+      tx24h: txMetrics.tx24h,
+      tx7d: txMetrics.tx7d,
+      tx30d: txMetrics.tx30d,
+      averageDailyTx:
+        age.walletAgeDays && age.walletAgeDays > 0
+          ? Number((core.allTimeTx / age.walletAgeDays).toFixed(2))
+          : core.allTimeTx > 0
+            ? core.allTimeTx
+            : 0,
+      firstTransactionAt: txMetrics.firstTransactionAt,
+      lastTransactionAt: txMetrics.lastTransactionAt,
       walletAgeDays: age.walletAgeDays,
       walletAgeText: age.walletAgeText
     },
-    profile: {
-      name: username || "Unknown",
-      tier: nft.badgeCount >= 40 ? "Gold III" : nft.badgeCount >= 20 ? "Silver" : nft.badgeCount > 0 ? "Bronze" : "Unranked",
-      badgeCount: nft.badgeCount,
-      badgesSource: "Abscan NFT transfer activity"
-    },
-    appSummary: {
-      apps,
-      mostUsed: mostUsedApp
-    },
-    badgeSummary: nft,
-    chart: recent.chart
+    profile,
+    appSummary: tokenActivity,
+    chart: txMetrics.chart
   };
 }
 
 async function main() {
   await mkdir("data", { recursive: true });
 
-  const wallets = await readJson("data/wallet-input.json");
+  const walletInput = await readJson("data/wallet-input.json");
   const appMap = await readJson("data/app-map.json");
   const results = [];
 
-  for (const item of wallets) {
+  for (const item of walletInput) {
     if (!isValidAddress(item.wallet)) {
       console.log(`Skipping invalid wallet: ${item.wallet}`);
       continue;
@@ -363,7 +498,7 @@ async function main() {
 
     console.log(`Collecting ${item.wallet}...`);
     try {
-      const result = await collectWallet(item.wallet, item.username, appMap);
+      const result = await collectWallet(item, appMap);
       results.push(result);
       console.log(`Done: ${item.wallet}`);
     } catch (error) {
