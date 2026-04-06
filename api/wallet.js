@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 function sendJson(res, statusCode, payload) {
   res.status(statusCode).json(payload);
@@ -9,8 +10,8 @@ function isValidAddress(address) {
 }
 
 async function loadWalletData() {
-  const fileUrl = new URL("../data/wallets.json", import.meta.url);
-  const raw = await readFile(fileUrl, "utf8");
+  const filePath = path.join(process.cwd(), "data", "wallets.json");
+  const raw = await readFile(filePath, "utf8");
   return JSON.parse(raw);
 }
 
@@ -46,8 +47,21 @@ export default async function handler(req, res) {
         badgeCount: null,
         badgesSource: "Not connected"
       },
-      balance: record.balance,
-      metrics: record.metrics,
+      balance: record.balance || {
+        wei: "0",
+        formatted: "0"
+      },
+      metrics: record.metrics || {
+        allTimeTx: 0,
+        tx24h: 0,
+        tx7d: 0,
+        tx30d: 0,
+        averageDailyTx: 0,
+        firstTransactionAt: null,
+        lastTransactionAt: null,
+        walletAgeDays: null,
+        walletAgeText: "-"
+      },
       transactionWindow: {
         dailyChart: record.chart || [],
         recentTransactions: []
