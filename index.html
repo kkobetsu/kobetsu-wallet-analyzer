@@ -401,127 +401,9 @@
       display: grid;
     }
 
-    .badge-panel {
-      display: none;
-      overflow: hidden;
-    }
-
-    .badge-panel.visible {
-      display: block;
-    }
-
-    .badge-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      padding: 18px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .badge-title {
-      font-size: 14px;
-      font-weight: 900;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #40685a;
-    }
-
-    .badge-count {
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(237, 255, 245, 0.96);
-      border: 1px solid rgba(33, 206, 122, 0.16);
-      color: #14844c;
-      font-size: 13px;
-      font-weight: 900;
-    }
-
-    .badge-grid {
-      display: grid;
-      gap: 14px;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      padding: 18px;
-    }
-
-    .badge-card {
-      padding: 16px;
-      border-radius: 18px;
-      border: 1px solid rgba(33, 206, 122, 0.1);
-      background: rgba(255, 255, 255, 0.88);
-      display: grid;
-      gap: 10px;
-      align-content: start;
-    }
-
-    .badge-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: start;
-    }
-
-    .badge-name {
-      font-size: 18px;
-      font-weight: 900;
-      line-height: 1.15;
-      color: #102219;
-    }
-
-    .badge-type {
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      background: rgba(241, 255, 247, 0.96);
-      border: 1px solid rgba(33, 206, 122, 0.14);
-      color: #14844c;
-      white-space: nowrap;
-    }
-
-    .badge-description,
-    .badge-requirement {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .badge-requirement strong {
-      color: #20362b;
-    }
-
-    .badge-meta {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      margin-top: auto;
-      color: #688076;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .claim-chip {
-      color: #13814a;
-    }
-
-    .empty-note {
-      display: none;
-      padding: 18px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .empty-note.visible {
-      display: block;
-    }
-
     @media (max-width: 980px) {
       .profile-grid,
-      .metrics-grid,
-      .badge-grid {
+      .metrics-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -652,16 +534,6 @@
       </article>
     </section>
 
-    <section id="badge-panel" class="badge-panel">
-      <div class="badge-head">
-        <div class="badge-title">Badge List</div>
-        <div class="badge-count" id="badge-list-count">0 badge</div>
-      </div>
-      <div id="badge-grid" class="badge-grid"></div>
-      <div id="empty-note" class="empty-note">
-        Bu profile icin badge bilgisi bulunamadi.
-      </div>
-    </section>
   </main>
 
   <script>
@@ -671,9 +543,6 @@
     const statusBox = document.getElementById("status");
     const profileCard = document.getElementById("profile-card");
     const metricsGrid = document.getElementById("metrics-grid");
-    const badgePanel = document.getElementById("badge-panel");
-    const badgeGrid = document.getElementById("badge-grid");
-    const emptyNote = document.getElementById("empty-note");
 
     const profileFields = {
       banner: document.getElementById("profile-banner"),
@@ -690,8 +559,7 @@
       streamingFoot: document.getElementById("streaming-foot"),
       assetSummary: document.getElementById("asset-summary"),
       avatarFoot: document.getElementById("avatar-foot"),
-      bannerFoot: document.getElementById("banner-foot"),
-      badgeListCount: document.getElementById("badge-list-count")
+      bannerFoot: document.getElementById("banner-foot")
     };
 
     const metricFields = {
@@ -736,33 +604,6 @@
       return value == null || value === "" ? fallback : String(value);
     }
 
-    function renderBadges(badges) {
-      badgeGrid.innerHTML = "";
-
-      const list = Array.isArray(badges) ? badges : [];
-      profileFields.badgeListCount.textContent = list.length + " badge";
-      emptyNote.className = list.length ? "empty-note" : "empty-note visible";
-
-      list.forEach((item) => {
-        const badge = item.badge || {};
-        const card = document.createElement("article");
-        card.className = "badge-card";
-        card.innerHTML = `
-          <div class="badge-top">
-            <div class="badge-name">${safeText(badge.name, "Unknown Badge")}</div>
-            <div class="badge-type">${safeText(badge.type, "regular")}</div>
-          </div>
-          <div class="badge-description">${safeText(badge.description, "Aciklama yok.")}</div>
-          <div class="badge-requirement"><strong>Requirement:</strong> ${safeText(badge.requirement, "-")}</div>
-          <div class="badge-meta">
-            <span>Icon: ${safeText(badge.icon, "-")}</span>
-            <span class="claim-chip">${item.claimed ? "Claimed" : "Unclaimed"}</span>
-          </div>
-        `;
-        badgeGrid.appendChild(card);
-      });
-    }
-
     function renderProfile(payload) {
       const user = payload.user || {};
       const badges = Array.isArray(user.badges) ? user.badges : [];
@@ -792,9 +633,7 @@
       profileFields.avatarFoot.textContent = "Avatar: " + avatarText;
       profileFields.bannerFoot.textContent = "Banner: " + bannerText;
 
-      renderBadges(badges);
       profileCard.className = "panel profile-card visible";
-      badgePanel.className = "badge-panel visible";
     }
 
     function renderWalletMetrics(payload) {
@@ -821,7 +660,6 @@
       setLoading(true);
       clearStatus();
       profileCard.className = "panel profile-card";
-      badgePanel.className = "badge-panel";
       metricsGrid.className = "metrics-grid";
 
       try {
