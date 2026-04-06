@@ -1,0 +1,7 @@
+{
+  "name": "kobetsu-wallet-anlyzer",
+  "private": true,
+  "scripts": {
+    "collect": "node scripts/collect-wallets.mjs"
+  }
+}
