@@ -11,6 +11,10 @@ const MAX_TOKEN_PAGES = 4;
 const REQUEST_DELAY_MS = 250;
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const DAY_IN_MS = DAY_IN_SECONDS * 1000;
+const ONCHAIN_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "Accept": "text/html"
+};
 
 if (!ETHERSCAN_API_KEY) {
   throw new Error("ETHERSCAN_API_KEY is missing.");
@@ -37,6 +41,91 @@ function shortenAddress(address) {
   const safe = String(address || "");
   if (safe.length < 14) return safe;
   return `${safe.slice(0, 8)}...${safe.slice(-4)}`;
+}
+
+function unescapeRSC(raw) {
+  return raw
+    .replace(/\\\\\\"/g, "\uFFFD")
+    .replace(/\\"/g, "\"")
+    .replace(/\uFFFD/g, "\\\"");
+}
+
+function weiDecimalToEth(value) {
+  const safe = String(value || "0");
+  if (!/^\d+$/.test(safe)) return 0;
+
+  const wei = BigInt(safe);
+  const base = 10n ** 18n;
+  const whole = Number(wei / base);
+  const fraction = Number(wei % base) / 1e18;
+  return whole + fraction;
+}
+
+function buildWojakProfile({ walletAgeDays, allTimeTx, badgeCount, uniqueDays, longestStreak, feeSpentEth, favoriteApp }) {
+  const ageScore =
+    walletAgeDays >= 365 ? 28 :
+    walletAgeDays >= 180 ? 20 :
+    walletAgeDays >= 90 ? 14 :
+    walletAgeDays >= 30 ? 8 : 2;
+
+  const txScore =
+    allTimeTx >= 20000 ? 28 :
+    allTimeTx >= 10000 ? 22 :
+    allTimeTx >= 5000 ? 16 :
+    allTimeTx >= 1000 ? 10 :
+    allTimeTx >= 200 ? 5 : 1;
+
+  const badgeScore =
+    badgeCount >= 40 ? 22 :
+    badgeCount >= 25 ? 16 :
+    badgeCount >= 10 ? 10 :
+    badgeCount >= 3 ? 5 : 1;
+
+  const activityScore =
+    uniqueDays >= 250 ? 12 :
+    uniqueDays >= 120 ? 9 :
+    uniqueDays >= 60 ? 6 :
+    uniqueDays >= 14 ? 3 : 1;
+
+  const streakScore =
+    longestStreak >= 60 ? 6 :
+    longestStreak >= 30 ? 4 :
+    longestStreak >= 7 ? 2 : 0;
+
+  const feeScore =
+    feeSpentEth >= 1 ? 8 :
+    feeSpentEth >= 0.25 ? 6 :
+    feeSpentEth >= 0.05 ? 4 :
+    feeSpentEth > 0 ? 2 : 0;
+
+  const score = ageScore + txScore + badgeScore + activityScore + streakScore + feeScore;
+
+  let title = "NOBRAIN";
+  if (walletAgeDays < 30 && allTimeTx < 250 && badgeCount < 5) {
+    title = "NEWBIE";
+  } else if (score >= 88 || (walletAgeDays >= 365 && allTimeTx >= 10000 && badgeCount >= 30)) {
+    title = "OG";
+  } else if (score >= 58 || (allTimeTx >= 5000 && badgeCount >= 15)) {
+    title = "CHAD";
+  } else if (score >= 36) {
+    title = "GRINDER";
+  }
+
+  const reasonParts = [
+    `${Math.round(walletAgeDays || 0)}d onchain age`,
+    `${allTimeTx} tx`,
+    `${badgeCount} badges`,
+    `${uniqueDays} active days`,
+    `${longestStreak} streak`,
+    `${feeSpentEth.toFixed(4)} ETH fee`,
+    favoriteApp ? `fav ${favoriteApp}` : null
+  ].filter(Boolean);
+
+  return {
+    title,
+    score,
+    reason: reasonParts.join(" · ")
+  };
 }
 
 async function readJson(filePath) {
@@ -257,6 +346,46 @@ async function fetchJsonMaybe(url) {
   return payload;
 }
 
+async function fetchOnchainStats(walletAddress) {
+  const response = await fetch(`https://onchain.abs.xyz/u/${walletAddress}`, {
+    headers: ONCHAIN_HEADERS
+  });
+
+  const html = await response.text();
+  if (!response.ok) {
+    throw new Error(`onchain.abs error: HTTP ${response.status}`);
+  }
+
+  const metricsMatch = html.match(/\\"metrics\\":\s*(\{[^}]+\})/);
+  const daysMatch = html.match(/\\"days\\":\s*(\[[^\]]+\])/);
+  const badgesMatch = html.match(/\\"badges\\":\s*(\[[\s\S]*?\}\])/);
+  const appMatch = html.match(/\\"app\\":\{\\"address\\":\\"([^\\]+)\\",\\"txCount\\":(\d+),\\"totalValue\\":\\"(\d+)\\",\\"firstInteraction\\":\\"([^\\]+)\\",\\"lastInteraction\\":\\"([^\\]+)\\",\\"activeDays\\":(\d+),\\"name\\":\\"([^\\]+)\\"/);
+
+  const metrics = metricsMatch ? JSON.parse(unescapeRSC(metricsMatch[1])) : null;
+  const heatmap = daysMatch ? JSON.parse(unescapeRSC(daysMatch[1])) : [];
+  const badges = badgesMatch ? JSON.parse(unescapeRSC(badgesMatch[1])) : [];
+
+  let favoriteAppDetails = null;
+  if (appMatch) {
+    favoriteAppDetails = {
+      address: appMatch[1],
+      txCount: Number.parseInt(appMatch[2], 10),
+      totalValueWei: appMatch[3],
+      firstInteraction: appMatch[4],
+      lastInteraction: appMatch[5],
+      activeDays: Number.parseInt(appMatch[6], 10),
+      name: appMatch[7]
+    };
+  }
+
+  return {
+    metrics,
+    heatmap,
+    badges,
+    favoriteAppDetails
+  };
+}
+
 async function fetchProfile(username, walletAddress) {
   const queries = [username, walletAddress].filter(Boolean);
 
@@ -330,6 +459,8 @@ async function fetchTransactionMetrics(address) {
   let tx30d = 0;
   let firstTransactionAt = null;
   let lastTransactionAt = null;
+  let totalFeeWei = 0n;
+  let fee30dWei = 0n;
 
   for (let page = 1; page <= MAX_TX_PAGES; page += 1) {
     const batch = await fetchEtherscanAccount("txlist", {
@@ -350,10 +481,15 @@ async function fetchTransactionMetrics(address) {
     for (const tx of batch) {
       const timestamp = Number(tx.timeStamp);
       if (!Number.isFinite(timestamp)) continue;
+      const gasUsed = BigInt(tx.gasUsed || "0");
+      const gasPrice = BigInt(tx.gasPrice || "0");
+      const txFeeWei = gasUsed * gasPrice;
 
       if (timestamp >= cutoff24h) tx24h += 1;
       if (timestamp >= cutoff7d) tx7d += 1;
       if (timestamp >= cutoff30d) tx30d += 1;
+      totalFeeWei += txFeeWei;
+      if (timestamp >= cutoff30d) fee30dWei += txFeeWei;
 
       if (timestamp >= cutoff14d) {
         const isoDate = new Date(timestamp * 1000).toISOString().slice(0, 10);
@@ -386,7 +522,9 @@ async function fetchTransactionMetrics(address) {
     tx30d,
     chart,
     firstTransactionAt,
-    lastTransactionAt
+    lastTransactionAt,
+    totalFeeWei: totalFeeWei.toString(),
+    fee30dWei: fee30dWei.toString()
   };
 }
 
@@ -444,14 +582,51 @@ async function collectWallet(item, appMap) {
   const address = item.wallet;
   const username = item.username || "Unknown";
 
-  const [core, profile, txMetrics, tokenActivity] = await Promise.all([
+  const [core, profile, txMetrics, tokenActivity, onchain] = await Promise.all([
     getWalletCoreMetrics(address),
     fetchProfile(username, address),
     fetchTransactionMetrics(address),
-    fetchTokenActivity(address, appMap)
+    fetchTokenActivity(address, appMap),
+    fetchOnchainStats(address).catch(() => ({
+      metrics: null,
+      heatmap: [],
+      badges: [],
+      favoriteAppDetails: null
+    }))
   ]);
 
   const age = calculateWalletAge(txMetrics.firstTransactionAt, Date.now());
+  const onchainMetrics = onchain.metrics || {};
+  const mergedBadgeCount = onchainMetrics.badgeCount ?? profile.badges?.length ?? 0;
+  const mergedFavoriteApp = onchainMetrics.favoriteApp && onchainMetrics.favoriteApp !== "$undefined"
+    ? onchainMetrics.favoriteApp
+    : tokenActivity.mostUsed?.name || null;
+  const uniqueDays = onchainMetrics.uniqueDays ?? 0;
+  const longestStreak = onchainMetrics.longestStreak ?? 0;
+  const feeSpentEth = weiDecimalToEth(txMetrics.totalFeeWei);
+  const fee30dEth = weiDecimalToEth(txMetrics.fee30dWei);
+  const wojak = buildWojakProfile({
+    walletAgeDays: age.walletAgeDays || 0,
+    allTimeTx: core.allTimeTx,
+    badgeCount: mergedBadgeCount,
+    uniqueDays,
+    longestStreak,
+    feeSpentEth,
+    favoriteApp: mergedFavoriteApp
+  });
+  const effectiveChart = onchain.heatmap?.length ? onchain.heatmap.slice(-14).map((item) => ({
+    date: item.date,
+    label: item.date.slice(5),
+    fullDate: item.date,
+    count: item.count
+  })) : txMetrics.chart;
+  const favoriteAppSummary = onchain.favoriteAppDetails
+    ? {
+        name: onchain.favoriteAppDetails.name,
+        address: onchain.favoriteAppDetails.address,
+        txCount: onchain.favoriteAppDetails.txCount
+      }
+    : tokenActivity.mostUsed;
 
   return {
     walletAddress: address,
@@ -475,11 +650,31 @@ async function collectWallet(item, appMap) {
       firstTransactionAt: txMetrics.firstTransactionAt,
       lastTransactionAt: txMetrics.lastTransactionAt,
       walletAgeDays: age.walletAgeDays,
-      walletAgeText: age.walletAgeText
+      walletAgeText: age.walletAgeText,
+      totalFeeWei: txMetrics.totalFeeWei,
+      totalFeeEth: Number(feeSpentEth.toFixed(6)),
+      fee30dWei: txMetrics.fee30dWei,
+      fee30dEth: Number(fee30dEth.toFixed(6)),
+      uniqueDays,
+      longestStreak
     },
-    profile,
+    profile: {
+      ...profile,
+      tierName: onchainMetrics.tierName ?? null,
+      badgeCount: mergedBadgeCount,
+      badges: onchain.badges?.length ? onchain.badges : profile.badges,
+      favoriteApp: mergedFavoriteApp,
+      wojak
+    },
     appSummary: tokenActivity,
-    chart: txMetrics.chart
+    onchain: {
+      metrics: onchain.metrics,
+      heatmap: onchain.heatmap,
+      favoriteAppDetails: onchain.favoriteAppDetails
+    },
+    chart: effectiveChart,
+    persona: wojak,
+    favoriteAppSummary
   };
 }
 
