@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kobetsu Abstract Profile Search</title>
+  <title>Kobetsu Abstract Title Scanner</title>
   <style>
     :root {
-      --bg: #f6fff9;
-      --panel: rgba(255, 255, 255, 0.92);
-      --panel-strong: rgba(255, 255, 255, 0.98);
-      --line: rgba(33, 206, 122, 0.16);
-      --line-strong: rgba(33, 206, 122, 0.3);
-      --text: #122019;
-      --muted: #61776c;
-      --green: #21ce7a;
-      --green-strong: #12b768;
-      --shadow: 0 22px 64px rgba(16, 35, 26, 0.09);
-      --danger: #cb506b;
-      --radius-xl: 30px;
-      --radius-lg: 22px;
+      --bg: #f7fff9;
+      --panel: rgba(255, 255, 255, 0.94);
+      --line: rgba(27, 204, 118, 0.16);
+      --line-strong: rgba(27, 204, 118, 0.3);
+      --text: #102118;
+      --muted: #62786d;
+      --green: #16cf73;
+      --green-deep: #0ea95d;
+      --shadow: 0 26px 80px rgba(14, 35, 24, 0.12);
+      --danger: #c94a69;
+      --radius-xl: 32px;
+      --radius-lg: 24px;
       --radius-md: 18px;
-      --max-width: 1180px;
+      --max-width: 1040px;
     }
 
     * { box-sizing: border-box; }
@@ -31,83 +30,27 @@
       font-family: "Segoe UI", Arial, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at 0% 0%, rgba(33, 206, 122, 0.14), transparent 30%),
-        radial-gradient(circle at 100% 20%, rgba(33, 206, 122, 0.12), transparent 28%),
+        radial-gradient(circle at 0% 0%, rgba(22, 207, 115, 0.14), transparent 30%),
+        radial-gradient(circle at 100% 10%, rgba(22, 207, 115, 0.12), transparent 26%),
         linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
     }
 
     .page {
-      position: relative;
       width: min(100% - 24px, var(--max-width));
       margin: 0 auto;
-      padding: 18px 0 48px;
-    }
-
-    .top-lane {
-      position: relative;
-      height: 90px;
-      margin-bottom: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(33, 206, 122, 0.12);
-      border-radius: 28px;
-      background: rgba(255, 255, 255, 0.52);
-      backdrop-filter: blur(10px);
-    }
-
-    .runner-wrap {
-      position: absolute;
-      inset: 0;
-      animation: lane-move 60s linear infinite;
-    }
-
-    .runner-logo {
-      position: absolute;
-      top: 16px;
-      left: 0;
-      width: 58px;
-      height: 58px;
-      object-fit: contain;
-      animation: logo-spin 5s linear infinite;
-      filter: drop-shadow(0 0 16px rgba(33, 206, 122, 0.4));
-    }
-
-    .runner-dog {
-      position: absolute;
-      top: 20px;
-      left: -78px;
-      width: 52px;
-      height: 52px;
-      object-fit: contain;
-      image-rendering: pixelated;
-      animation: dog-bounce 0.8s ease-in-out infinite;
-    }
-
-    @keyframes lane-move {
-      from { transform: translateX(-140px); }
-      to { transform: translateX(calc(100vw + 140px)); }
-    }
-
-    @keyframes logo-spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes dog-bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
-
-    .search-shell,
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-xl);
-      background: var(--panel);
-      backdrop-filter: blur(14px);
-      box-shadow: var(--shadow);
+      min-height: 100vh;
+      display: grid;
+      align-content: center;
+      padding: 36px 0;
     }
 
     .search-shell {
-      padding: 18px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
     }
 
     .search-row {
@@ -121,17 +64,16 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      height: 78px;
-      padding: 0 18px;
-      border-radius: 26px;
+      height: 82px;
+      padding: 0 20px;
+      border-radius: 28px;
       border: 1px solid var(--line-strong);
-      background: var(--panel-strong);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.98);
     }
 
     .input-wrap img {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       object-fit: contain;
       flex: 0 0 auto;
     }
@@ -141,24 +83,27 @@
       border: none;
       outline: none;
       background: transparent;
-      font-size: 18px;
-      font-weight: 800;
       color: var(--text);
+      font-size: 22px;
+      font-weight: 900;
     }
 
     input::placeholder {
-      color: #8ba398;
-      font-weight: 600;
+      color: #8aa095;
+      font-weight: 700;
     }
 
     button {
       appearance: none;
       border: none;
       cursor: pointer;
-      height: 78px;
-      border-radius: 26px;
-      font-size: 16px;
+      height: 82px;
+      border-radius: 28px;
+      font-size: 18px;
       font-weight: 900;
+      color: #072014;
+      background: linear-gradient(135deg, #97f6bf 0%, #49df8e 55%, #13bc68 100%);
+      box-shadow: 0 14px 30px rgba(19, 188, 104, 0.24);
       transition: transform 160ms ease, filter 160ms ease, opacity 160ms ease;
     }
 
@@ -171,12 +116,6 @@
       opacity: 0.65;
       cursor: wait;
       transform: none;
-    }
-
-    .primary-button {
-      color: #062014;
-      background: linear-gradient(135deg, #95f7be 0%, #46e08d 55%, #11bb66 100%);
-      box-shadow: 0 12px 28px rgba(17, 187, 102, 0.22);
     }
 
     .status {
@@ -193,239 +132,176 @@
     .status.loading {
       color: #2d5a49;
       background: rgba(244, 255, 248, 0.96);
-      border-color: rgba(33, 206, 122, 0.16);
-    }
-    .status.success {
-      color: #1e5a39;
-      background: rgba(243, 255, 248, 0.96);
-      border-color: rgba(33, 206, 122, 0.2);
+      border-color: rgba(27, 204, 118, 0.16);
     }
     .status.error {
       color: var(--danger);
       background: rgba(255, 246, 248, 0.96);
-      border-color: rgba(203, 80, 107, 0.18);
+      border-color: rgba(201, 74, 105, 0.18);
     }
 
-    .profile-card {
+    .overlay {
+      position: fixed;
+      inset: 0;
       display: none;
-      overflow: hidden;
-      margin-top: 18px;
+      place-items: center;
+      padding: 20px;
+      background: rgba(241, 255, 247, 0.62);
+      backdrop-filter: blur(8px);
+      z-index: 10;
     }
 
-    .profile-card.visible {
+    .overlay.visible {
+      display: grid;
+    }
+
+    .summary-card {
+      position: relative;
+      width: min(100%, 900px);
+      border-radius: 36px;
+      border: 1px solid var(--line-strong);
+      background:
+        radial-gradient(circle at top center, rgba(22, 207, 115, 0.15), transparent 36%),
+        rgba(255, 255, 255, 0.98);
+      box-shadow: 0 34px 90px rgba(14, 35, 24, 0.18);
+      overflow: hidden;
+    }
+
+    .close-button {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      border: 1px solid rgba(27, 204, 118, 0.14);
+      background: rgba(243, 255, 248, 0.96);
+      color: #177a49;
+      font-size: 22px;
+      font-weight: 800;
+      box-shadow: none;
+    }
+
+    .summary-body {
+      padding: 40px 34px 30px;
+      display: grid;
+      gap: 24px;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .summary-label {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #5b786b;
+    }
+
+    .summary-title {
+      margin: 0;
+      font-size: clamp(68px, 13vw, 150px);
+      line-height: 0.84;
+      letter-spacing: -0.1em;
+      font-weight: 900;
+      color: var(--green);
+      text-shadow: 0 0 28px rgba(22, 207, 115, 0.2);
+    }
+
+    .summary-name {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .summary-subline {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 720px;
+    }
+
+    .detail-link {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: #157749;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: underline;
+      height: auto;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .detail-panel {
+      display: none;
+      width: 100%;
+      margin-top: 4px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(27, 204, 118, 0.1);
+    }
+
+    .detail-panel.visible {
       display: block;
     }
 
-    .profile-banner {
-      position: relative;
-      min-height: 180px;
-      padding: 24px;
-      background:
-        linear-gradient(135deg, rgba(33, 206, 122, 0.2), rgba(33, 206, 122, 0.04)),
-        linear-gradient(180deg, rgba(20, 33, 25, 0.08), rgba(20, 33, 25, 0));
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: end;
-    }
-
-    .profile-banner::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: var(--banner-image);
-      background-size: cover;
-      background-position: center;
-      opacity: 0.16;
-      pointer-events: none;
-    }
-
-    .profile-banner-content {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: end;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-
-    .avatar {
-      width: 102px;
-      height: 102px;
-      padding: 4px;
-      border-radius: 28px;
-      background: linear-gradient(135deg, #95f7be, #46e08d);
-      box-shadow: 0 12px 28px rgba(33, 206, 122, 0.18);
-    }
-
-    .avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.96);
-    }
-
-    .profile-copy {
+    .detail-grid {
       display: grid;
-      gap: 8px;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      text-align: left;
     }
 
-    .profile-name {
-      font-size: clamp(28px, 4vw, 40px);
-      line-height: 0.95;
-      letter-spacing: -0.05em;
+    .detail-item {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(248, 255, 251, 0.96);
+      border: 1px solid rgba(27, 204, 118, 0.1);
+    }
+
+    .detail-key {
+      color: #678076;
+      font-size: 12px;
       font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
     }
 
-    .profile-description {
-      color: #3f5e51;
-      font-size: 15px;
-      line-height: 1.6;
-      max-width: 700px;
-    }
-
-    .profile-wallet {
-      color: #5c776b;
-      font-size: 14px;
-      font-weight: 700;
+    .detail-value {
+      font-size: 24px;
+      line-height: 1.06;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: #153023;
       word-break: break-word;
     }
 
-    .profile-grid {
-      display: grid;
-      gap: 14px;
-      grid-template-columns: 220px repeat(3, minmax(0, 1fr));
-      padding: 18px;
-    }
-
-    .profile-side,
-    .metric-card {
-      border: 1px solid rgba(33, 206, 122, 0.12);
-      border-radius: var(--radius-lg);
-      background: rgba(255, 255, 255, 0.84);
-      min-height: 210px;
-    }
-
-    .profile-side {
-      padding: 18px;
-      display: grid;
-      gap: 14px;
-      align-content: start;
-    }
-
-    .tier-chip {
-      display: inline-flex;
-      width: fit-content;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(239, 255, 245, 0.96);
-      border: 1px solid rgba(33, 206, 122, 0.18);
-      color: #15834b;
-      font-size: 14px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .profile-meta {
+    .detail-note {
+      margin-top: 8px;
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .portal-link {
-      display: inline-flex;
-      width: fit-content;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      border-radius: 16px;
-      border: 1px solid rgba(33, 206, 122, 0.16);
-      background: rgba(241, 255, 247, 0.96);
-      color: #13814a;
-      font-size: 14px;
-      font-weight: 800;
-      text-decoration: none;
-    }
-
-    .metric-card {
-      padding: 20px;
-      display: grid;
-      align-content: space-between;
-      gap: 14px;
-      background:
-        radial-gradient(circle at center, rgba(33, 206, 122, 0.1), transparent 64%),
-        rgba(255, 255, 255, 0.88);
-    }
-
-    .metric-label {
-      color: #5e776e;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
       font-size: 13px;
-      font-weight: 800;
-    }
-
-    .metric-value {
-      font-size: clamp(30px, 4vw, 70px);
-      line-height: 0.95;
-      letter-spacing: -0.06em;
-      font-weight: 900;
-      color: #19d37a;
-      text-shadow: 0 0 22px rgba(33, 206, 122, 0.16);
-      word-break: break-word;
-    }
-
-    .metric-foot {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      color: #7a938b;
-      font-size: 14px;
       line-height: 1.5;
-    }
-
-    .metrics-grid {
-      display: none;
-      gap: 14px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin-top: 18px;
-    }
-
-    .metrics-grid.visible {
-      display: grid;
-    }
-
-    @media (max-width: 980px) {
-      .profile-grid,
-      .metrics-grid {
-        grid-template-columns: 1fr;
-      }
     }
 
     @media (max-width: 720px) {
       .search-row {
         grid-template-columns: 1fr;
       }
-    }
 
-    @media (max-width: 640px) {
-      .page {
-        width: min(100% - 16px, var(--max-width));
-        padding-top: 12px;
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-body {
+        padding: 34px 20px 24px;
       }
     }
   </style>
 </head>
 <body>
   <main class="page">
-    <div class="top-lane">
-      <div class="runner-wrap">
-        <img class="runner-logo" src="./assets/abstract-glow.png" alt="Abstract logo" />
-        <img class="runner-dog" src="./assets/kobetsu-pfp.png" alt="Kobetsu dog" />
-      </div>
-    </div>
-
     <section class="search-shell">
       <form id="search-form">
         <div class="search-row">
@@ -433,139 +309,104 @@
             <input id="query-input" type="text" placeholder="wallet veya nickname" autocomplete="off" spellcheck="false" />
             <img src="./assets/abstract-glow.png" alt="Abstract" />
           </div>
-          <button class="primary-button" id="submit-button" type="submit">Search</button>
+          <button id="submit-button" type="submit">Search</button>
         </div>
       </form>
       <div id="status" class="status" role="status" aria-live="polite"></div>
     </section>
-
-    <section id="profile-card" class="panel profile-card">
-      <div class="profile-banner" id="profile-banner">
-        <div class="profile-banner-content">
-          <div class="avatar">
-            <img id="profile-avatar" src="./assets/kobetsu-pfp.png" alt="Avatar" />
-          </div>
-          <div class="profile-copy">
-            <div class="profile-name" id="profile-name">Unknown</div>
-            <div class="profile-description" id="profile-description">Profil aciklamasi burada gorunecek.</div>
-            <div class="profile-wallet" id="profile-wallet">-</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="profile-grid">
-        <article class="profile-side">
-          <div class="tier-chip" id="tier-chip">Tier -</div>
-          <div class="profile-meta" id="profile-meta">
-            Avatar, banner, badge ve tier verisi profile kaynagindan gelecek.
-          </div>
-          <a class="portal-link" id="portal-link" href="https://portal.abs.xyz/profile" target="_blank" rel="noreferrer">Portal</a>
-        </article>
-
-        <article class="metric-card">
-          <div class="metric-label">Badges</div>
-          <div class="metric-value" id="badge-count">-</div>
-          <div class="metric-foot">
-            <span>Claimed</span>
-            <span id="badge-foot">0 badge</span>
-          </div>
-        </article>
-
-        <article class="metric-card">
-          <div class="metric-label">Tier V2</div>
-          <div class="metric-value" id="tier-v2-value">-</div>
-          <div class="metric-foot">
-            <span>Portal</span>
-            <span id="streaming-foot">Streaming: -</span>
-          </div>
-        </article>
-
-        <article class="metric-card">
-          <div class="metric-label">Wojak Title</div>
-          <div class="metric-value" id="wojak-title">-</div>
-          <div class="metric-foot">
-            <span id="wojak-score">Score: -</span>
-            <span id="wojak-reason">-</span>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section id="metrics-grid" class="metrics-grid">
-      <article class="metric-card">
-        <div class="metric-label">Transactions</div>
-        <div class="metric-value" id="tx-value">-</div>
-        <div class="metric-foot">
-          <span>Local dataset</span>
-          <span id="tx-foot">All-time</span>
-        </div>
-      </article>
-
-      <article class="metric-card">
-        <div class="metric-label">Fee Spent</div>
-        <div class="metric-value" id="fee-value">-</div>
-        <div class="metric-foot">
-          <span>All-time</span>
-          <span id="fee-foot">ETH</span>
-        </div>
-      </article>
-
-      <article class="metric-card">
-        <div class="metric-label">Wallet Age</div>
-        <div class="metric-value" id="age-value">-</div>
-        <div class="metric-foot">
-          <span>First TX</span>
-          <span id="first-tx-foot">-</span>
-        </div>
-      </article>
-
-      <article class="metric-card">
-        <div class="metric-label">Favorite App</div>
-        <div class="metric-value" id="favorite-app-value">-</div>
-        <div class="metric-foot">
-          <span>Portal / Token</span>
-          <span id="favorite-app-foot">-</span>
-        </div>
-      </article>
-    </section>
-
   </main>
+
+  <section id="overlay" class="overlay">
+    <article class="summary-card">
+      <button id="close-button" class="close-button" type="button">×</button>
+      <div class="summary-body">
+        <div class="summary-label">Abstract Wojak Title</div>
+        <h1 id="summary-title" class="summary-title">-</h1>
+        <div id="summary-name" class="summary-name">-</div>
+        <div id="summary-subline" class="summary-subline">-</div>
+        <button id="detail-link" class="detail-link" type="button">Detaylari gor</button>
+
+        <div id="detail-panel" class="detail-panel">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-key">Portal Tier</div>
+              <div id="detail-tier" class="detail-value">-</div>
+              <div id="detail-tier-note" class="detail-note">-</div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-key">Badge Count</div>
+              <div id="detail-badges" class="detail-value">-</div>
+              <div class="detail-note">Toplam kazanilan badge</div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-key">Transactions</div>
+              <div id="detail-tx" class="detail-value">-</div>
+              <div class="detail-note">All-time</div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-key">Fee Spent</div>
+              <div id="detail-fee" class="detail-value">-</div>
+              <div class="detail-note">All-time chain fee</div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-key">Wallet Age</div>
+              <div id="detail-age" class="detail-value">-</div>
+              <div id="detail-age-note" class="detail-note">-</div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-key">Favorite App</div>
+              <div id="detail-app" class="detail-value">-</div>
+              <div id="detail-app-note" class="detail-note">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
 
   <script>
     const form = document.getElementById("search-form");
     const queryInput = document.getElementById("query-input");
     const submitButton = document.getElementById("submit-button");
     const statusBox = document.getElementById("status");
-    const profileCard = document.getElementById("profile-card");
-    const metricsGrid = document.getElementById("metrics-grid");
+    const overlay = document.getElementById("overlay");
+    const closeButton = document.getElementById("close-button");
+    const detailLink = document.getElementById("detail-link");
+    const detailPanel = document.getElementById("detail-panel");
 
-    const profileFields = {
-      banner: document.getElementById("profile-banner"),
-      avatar: document.getElementById("profile-avatar"),
-      name: document.getElementById("profile-name"),
-      description: document.getElementById("profile-description"),
-      wallet: document.getElementById("profile-wallet"),
-      tierChip: document.getElementById("tier-chip"),
-      meta: document.getElementById("profile-meta"),
-      portalLink: document.getElementById("portal-link"),
-      badgeCount: document.getElementById("badge-count"),
-      badgeFoot: document.getElementById("badge-foot"),
-      tierV2: document.getElementById("tier-v2-value"),
-      streamingFoot: document.getElementById("streaming-foot"),
-      wojakTitle: document.getElementById("wojak-title"),
-      wojakScore: document.getElementById("wojak-score"),
-      wojakReason: document.getElementById("wojak-reason")
+    const fields = {
+      title: document.getElementById("summary-title"),
+      name: document.getElementById("summary-name"),
+      subline: document.getElementById("summary-subline"),
+      tier: document.getElementById("detail-tier"),
+      tierNote: document.getElementById("detail-tier-note"),
+      badges: document.getElementById("detail-badges"),
+      tx: document.getElementById("detail-tx"),
+      fee: document.getElementById("detail-fee"),
+      age: document.getElementById("detail-age"),
+      ageNote: document.getElementById("detail-age-note"),
+      app: document.getElementById("detail-app"),
+      appNote: document.getElementById("detail-app-note")
     };
 
-    const metricFields = {
-      tx: document.getElementById("tx-value"),
-      txFoot: document.getElementById("tx-foot"),
-      fee: document.getElementById("fee-value"),
-      feeFoot: document.getElementById("fee-foot"),
-      age: document.getElementById("age-value"),
-      firstTxFoot: document.getElementById("first-tx-foot"),
-      favoriteApp: document.getElementById("favorite-app-value"),
-      favoriteAppFoot: document.getElementById("favorite-app-foot")
+    const TIER_V2_MAP = {
+      1: "Bronze I",
+      2: "Bronze II",
+      3: "Bronze III",
+      4: "Silver I",
+      5: "Silver II",
+      6: "Silver III",
+      7: "Gold I",
+      8: "Gold II",
+      9: "Gold III",
+      10: "Diamond I",
+      11: "Diamond II",
+      12: "Diamond III"
     };
 
     function setStatus(type, message) {
@@ -583,82 +424,94 @@
       submitButton.textContent = isLoading ? "Loading..." : "Search";
     }
 
-    function formatNumber(value, fractionDigits = 0) {
+    function formatNumber(value, digits = 0) {
       return new Intl.NumberFormat("en-US", {
-        maximumFractionDigits: fractionDigits
+        maximumFractionDigits: digits
       }).format(value);
-    }
-
-    function shortenAddress(value) {
-      const safe = String(value || "");
-      if (safe.length < 14) return safe;
-      return safe.slice(0, 8) + "..." + safe.slice(-6);
     }
 
     function safeText(value, fallback = "-") {
       return value == null || value === "" ? fallback : String(value);
     }
 
-    function renderProfile(payload) {
-      const user = payload.user || {};
-      const badges = Array.isArray(user.badges) ? user.badges : [];
-      const avatarUrl = user.overrideProfilePictureUrl || "./assets/kobetsu-pfp.png";
-      const wallet = user.walletAddress || payload.walletAddress || "-";
-      const badgeCount = user.badgeCount ?? badges.filter((item) => item.claimed).length;
-      const bannerText = user.banner
-        ? `S${safeText(user.banner.season)} / T${safeText(user.banner.tier)} / K${safeText(user.banner.key)}`
-        : "-";
-      const avatarText = user.avatar
-        ? `S${safeText(user.avatar.season)} / T${safeText(user.avatar.tier)} / K${safeText(user.avatar.key)}`
-        : "-";
+    function buildTierDisplay(profile) {
+      const activityTier = profile.tierName ? String(profile.tierName) : null;
+      const portalTier = profile.tierV2 != null ? TIER_V2_MAP[profile.tierV2] || `Tier ${profile.tierV2}` : null;
 
-      profileFields.banner.style.setProperty("--banner-image", user.overrideProfilePictureUrl ? `url('${user.overrideProfilePictureUrl}')` : "none");
-      profileFields.avatar.src = avatarUrl;
-      profileFields.name.textContent = safeText(user.name, "Unknown");
-      profileFields.description.textContent = safeText(user.description, "Aciklama yok.");
-      profileFields.wallet.textContent = wallet;
-      profileFields.tierChip.textContent = "Tier " + safeText(user.tier);
-      profileFields.meta.textContent = `ID ${safeText(user.id)} - TierV2 ${safeText(user.tierV2)} - Welcome Tour ${user.hasCompletedWelcomeTour ? "Yes" : "No"}`;
-      profileFields.portalLink.href = "https://portal.abs.xyz/profile/" + wallet;
-      profileFields.badgeCount.textContent = formatNumber(badgeCount, 0);
-      profileFields.badgeFoot.textContent = String(user.badgeCount ?? badges.length) + " total badge";
-      profileFields.tierV2.textContent = safeText(user.tierV2);
-      profileFields.streamingFoot.textContent = "Streaming: " + (user.hasStreamingAccess ? "Yes" : "No");
-      profileFields.wojakTitle.textContent = safeText(user.wojak?.title, "UNRANKED");
-      profileFields.wojakScore.textContent = "Score: " + safeText(user.wojak?.score, "-");
-      profileFields.wojakReason.textContent = safeText(user.wojak?.reason, `Avatar ${avatarText} / Banner ${bannerText}`);
-
-      profileCard.className = "panel profile-card visible";
-    }
-
-    function renderWalletMetrics(payload) {
-      if (!payload || !payload.metrics) {
-        metricsGrid.className = "metrics-grid";
-        return;
+      if (activityTier && portalTier) {
+        return {
+          main: activityTier,
+          note: `Portal ${portalTier}`
+        };
       }
 
-      metricFields.tx.textContent = formatNumber(payload.metrics.allTimeTx || 0, 0);
-      metricFields.txFoot.textContent = "All-time";
-      metricFields.fee.textContent = safeText(payload.metrics.totalFeeEth, "0") + " ETH";
-      metricFields.feeFoot.textContent = "30d: " + safeText(payload.metrics.fee30dEth, "0") + " ETH";
-      metricFields.age.textContent = safeText(payload.metrics.walletAgeText, "-");
-      metricFields.firstTxFoot.textContent = safeText(payload.metrics.firstTransactionAt, "-");
-      metricFields.favoriteApp.textContent = safeText(payload.profile?.favoriteApp || payload.favoriteAppSummary?.name || payload.appSummary?.mostUsed?.name, "-");
-      metricFields.favoriteAppFoot.textContent = payload.favoriteAppSummary?.txCount || payload.appSummary?.mostUsed?.txCount
-        ? formatNumber(payload.favoriteAppSummary?.txCount || payload.appSummary.mostUsed.txCount, 0) + " tx"
-        : "-";
+      if (portalTier) {
+        return {
+          main: portalTier,
+          note: "Portal ladder"
+        };
+      }
 
-      metricsGrid.className = "metrics-grid visible";
+      if (profile.tier != null) {
+        return {
+          main: `Tier ${profile.tier}`,
+          note: "Legacy profile tier"
+        };
+      }
+
+      return {
+        main: "-",
+        note: "-"
+      };
+    }
+
+    function openOverlay() {
+      overlay.className = "overlay visible";
+    }
+
+    function closeOverlay() {
+      overlay.className = "overlay";
+      detailPanel.className = "detail-panel";
+      detailLink.textContent = "Detaylari gor";
+    }
+
+    function toggleDetails() {
+      const visible = detailPanel.classList.contains("visible");
+      detailPanel.className = visible ? "detail-panel" : "detail-panel visible";
+      detailLink.textContent = visible ? "Detaylari gor" : "Detaylari gizle";
+    }
+
+    function renderSummary(profilePayload, walletPayload) {
+      const user = profilePayload.user || {};
+      const metrics = walletPayload?.metrics || {};
+      const profile = walletPayload?.profile || user || {};
+      const persona = profile.wojak || walletPayload?.persona || {};
+      const tierDisplay = buildTierDisplay(profile);
+      const favoriteApp = profile.favoriteApp || walletPayload?.favoriteAppSummary?.name || walletPayload?.appSummary?.mostUsed?.name || "-";
+      const favoriteAppTx = walletPayload?.favoriteAppSummary?.txCount || walletPayload?.appSummary?.mostUsed?.txCount || null;
+
+      fields.title.textContent = safeText(persona.title, "UNRANKED");
+      fields.name.textContent = safeText(user.name || profile.name, "Unknown");
+      fields.subline.textContent = safeText(user.walletAddress || profile.walletAddress, "-");
+      fields.tier.textContent = tierDisplay.main;
+      fields.tierNote.textContent = tierDisplay.note;
+      fields.badges.textContent = safeText(profile.badgeCount, 0);
+      fields.tx.textContent = formatNumber(metrics.allTimeTx || 0, 0);
+      fields.fee.textContent = safeText(metrics.totalFeeEth, "0") + " ETH";
+      fields.age.textContent = safeText(metrics.walletAgeText, "-");
+      fields.ageNote.textContent = safeText(metrics.firstTransactionAt, "-");
+      fields.app.textContent = safeText(favoriteApp, "-");
+      fields.appNote.textContent = favoriteAppTx ? `${formatNumber(favoriteAppTx, 0)} tx` : "No app data";
+
+      openOverlay();
     }
 
     async function analyze(query) {
       setLoading(true);
       clearStatus();
-      profileCard.className = "panel profile-card";
-      metricsGrid.className = "metrics-grid";
 
       try {
-        setStatus("loading", "Profile, badge ve tier verileri aliniyor...");
+        setStatus("loading", "Title hesaplaniyor...");
 
         const profileResponse = await fetch("/api/profile?query=" + encodeURIComponent(query));
         const profilePayload = await profileResponse.json();
@@ -667,21 +520,19 @@
           throw new Error(profilePayload.error || "Profile request failed.");
         }
 
-        renderProfile(profilePayload);
-
         const walletAddress = profilePayload.user?.walletAddress;
+        let walletPayload = null;
+
         if (walletAddress) {
-          try {
-            const walletResponse = await fetch("/api/wallet?address=" + encodeURIComponent(walletAddress));
-            const walletPayload = await walletResponse.json();
-            if (walletResponse.ok) {
-              renderWalletMetrics(walletPayload);
-            }
-          } catch (_) {
+          const walletResponse = await fetch("/api/wallet?address=" + encodeURIComponent(walletAddress));
+          const walletJson = await walletResponse.json();
+          if (walletResponse.ok) {
+            walletPayload = walletJson;
           }
         }
 
-        setStatus("success", "Profile verisi geldi. Badge ve tier alani guncellendi.");
+        renderSummary(profilePayload, walletPayload);
+        clearStatus();
       } catch (error) {
         setStatus("error", error.message || "Beklenmeyen bir hata olustu.");
       } finally {
@@ -697,6 +548,14 @@
         return;
       }
       analyze(query);
+    });
+
+    closeButton.addEventListener("click", closeOverlay);
+    detailLink.addEventListener("click", toggleDetails);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) {
+        closeOverlay();
+      }
     });
   </script>
 </body>
