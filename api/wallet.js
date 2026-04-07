@@ -196,38 +196,21 @@ async function fetchJsonMaybe(url) {
   return payload;
 }
 
-async function fetchLiveProfile(query) {
-  const suggestPayload = await fetchJsonMaybe(
-    `https://abscope.live/api/suggest?query=${encodeURIComponent(query)}`
-  );
-  const candidates = collectCandidates(suggestPayload);
-  const picked = pickCandidate(candidates, query);
-
-  if (!picked?.id) {
-    throw new Error("Profile not found.");
-  }
-
-  const profilePayload = await fetchJsonMaybe(`https://abscope.live/api/proxy/user/${picked.id}`);
-  const user = profilePayload?.user;
-
-  if (!user) {
-    throw new Error("Profile payload is missing user data.");
-  }
-
+function buildMinimalProfile(address) {
   return {
-    id: user.id ?? null,
-    name: user.name || "Unknown",
-    description: user.description || "",
-    walletAddress: user.walletAddress || (isValidAddress(query) ? query : ""),
-    avatar: user.avatar || null,
-    banner: user.banner || null,
-    tier: user.tier ?? null,
-    tierV2: user.tierV2 ?? null,
-    hasCompletedWelcomeTour: Boolean(user.hasCompletedWelcomeTour),
-    hasStreamingAccess: Boolean(user.hasStreamingAccess),
-    overrideProfilePictureUrl: user.overrideProfilePictureUrl || null,
-    lastTierSeen: user.lastTierSeen ?? null,
-    badges: Array.isArray(user.badges) ? user.badges : []
+    id: null,
+    name: "Unknown",
+    description: "",
+    walletAddress: address,
+    avatar: null,
+    banner: null,
+    tier: null,
+    tierV2: null,
+    hasCompletedWelcomeTour: false,
+    hasStreamingAccess: false,
+    overrideProfilePictureUrl: null,
+    lastTierSeen: null,
+    badges: []
   };
 }
 
@@ -533,9 +516,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [core, liveProfile, txMetrics, onchain] = await Promise.all([
+    const [core, txMetrics, onchain] = await Promise.all([
       getWalletCoreMetrics(address),
-      fetchLiveProfile(address),
       fetchTransactionMetrics(address),
       fetchOnchainStats(address).catch(() => ({
         metrics: null,
@@ -543,6 +525,7 @@ export default async function handler(req, res) {
         favoriteAppDetails: null
       }))
     ]);
+    const liveProfile = buildMinimalProfile(address);
 
     const onchainMetrics = onchain.metrics || {};
     const age = calculateWalletAge(txMetrics.firstTransactionAt, Date.now());
