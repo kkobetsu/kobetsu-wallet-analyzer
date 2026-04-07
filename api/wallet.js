@@ -1,6 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
 const ABSTRACT_RPC_URL = process.env.ABSTRACT_RPC_URL || "https://api.mainnet.abs.xyz";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const ETHERSCAN_API_BASE = "https://api.etherscan.io/v2/api";
@@ -520,23 +517,6 @@ function buildTitleProfile({
   };
 }
 
-async function loadWalletData() {
-  const filePath = path.join(process.cwd(), "data", "wallets.json");
-  const raw = await readFile(filePath, "utf8");
-  return JSON.parse(raw);
-}
-
-async function fetchLocalWallet(address) {
-  try {
-    const wallets = await loadWalletData();
-    return wallets.find(
-      (item) => String(item.walletAddress || "").toLowerCase() === address.toLowerCase()
-    ) || null;
-  } catch {
-    return null;
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return sendJson(res, 405, { error: "Only GET requests are supported." });
@@ -638,26 +618,6 @@ export default async function handler(req, res) {
 
     return sendJson(res, 200, payload);
   } catch (liveError) {
-    const local = await fetchLocalWallet(address);
-    if (local) {
-      return sendJson(res, 200, {
-        walletAddress: local.walletAddress,
-        profile: local.profile,
-        balance: local.balance,
-        metrics: local.metrics,
-        transactionWindow: {
-          dailyChart: local.chart || [],
-          recentTransactions: []
-        },
-        appSummary: local.appSummary || { apps: [], mostUsed: null },
-        favoriteAppSummary: local.favoriteAppSummary || null,
-        persona: local.persona || local.profile?.wojak || null,
-        privacy: {
-          shortWallet: shortenAddress(local.walletAddress)
-        }
-      });
-    }
-
     const message = liveError instanceof Error ? liveError.message : "Wallet lookup failed.";
     return sendJson(res, 500, { error: message });
   }
