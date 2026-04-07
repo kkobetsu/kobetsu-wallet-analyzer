@@ -49,7 +49,10 @@ export default async function handler(req, res) {
       appSummary: record.appSummary || {
         apps: [],
         mostUsed: null
-      }
+      },
+      favoriteAppSummary: record.favoriteAppSummary || null,
+      persona: record.persona || null,
+      onchain: record.onchain || null
     });
   } catch (error) {
     return sendJson(res, 500, {
