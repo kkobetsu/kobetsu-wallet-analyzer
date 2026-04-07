@@ -47,16 +47,14 @@
       position: relative;
       height: 92px;
       overflow: hidden;
-      border: 1px solid rgba(27, 204, 118, 0.12);
       border-radius: 28px;
-      background: rgba(255, 255, 255, 0.54);
-      backdrop-filter: blur(10px);
+      background: transparent;
     }
 
     .runner-wrap {
       position: absolute;
       inset: 0;
-      animation: lane-move 6.5s linear infinite;
+      animation: lane-move 11s linear infinite;
     }
 
     .runner-logo {
@@ -78,7 +76,7 @@
       height: 52px;
       object-fit: contain;
       image-rendering: pixelated;
-      animation: dog-bounce 0.45s ease-in-out infinite;
+      animation: dog-bounce 0.8s ease-in-out infinite;
     }
 
     @keyframes lane-move {
@@ -342,6 +340,10 @@
       line-height: 1.5;
     }
 
+    .detail-note:empty {
+      display: none;
+    }
+
     @media (max-width: 720px) {
       .search-row {
         grid-template-columns: 1fr;
@@ -533,7 +535,7 @@
       fields.flavor.textContent = safeText(persona.flavor, "A wallet profile shaped by onchain behavior.");
 
       fields.tier.textContent = safeText(profile.displayTier || profile.tierName, "Unranked");
-      fields.tierNote.textContent = "Resolved from the Abstract portal tier ladder.";
+      fields.tierNote.textContent = "";
       fields.badges.textContent = formatNumber(Number(profile.badgeCount || 0), 0);
       fields.tx.textContent = formatNumber(Number(metrics.allTimeTx || 0), 0);
       fields.fee.textContent = `${safeText(metrics.totalFeeEth, "0")} ETH`;
