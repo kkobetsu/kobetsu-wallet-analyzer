@@ -115,105 +115,6 @@ function unescapeRSC(raw) {
     .replace(/\uFFFD/g, "\\\"");
 }
 
-function collectCandidates(value, results = []) {
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      collectCandidates(item, results);
-    }
-    return results;
-  }
-
-  if (!value || typeof value !== "object") {
-    return results;
-  }
-
-  const hasId = value.id !== undefined || value.userId !== undefined;
-  const hasName = value.name !== undefined || value.username !== undefined;
-  const hasWallet =
-    value.walletAddress !== undefined ||
-    value.wallet !== undefined ||
-    value.address !== undefined;
-
-  if (hasId && (hasName || hasWallet)) {
-    results.push(value);
-  }
-
-  for (const nested of Object.values(value)) {
-    collectCandidates(nested, results);
-  }
-
-  return results;
-}
-
-function normalizeCandidate(candidate) {
-  return {
-    id: candidate?.id ?? candidate?.userId ?? candidate?.user?.id ?? null,
-    name: candidate?.name ?? candidate?.username ?? candidate?.user?.name ?? "",
-    walletAddress:
-      candidate?.walletAddress ??
-      candidate?.address ??
-      candidate?.wallet ??
-      candidate?.user?.walletAddress ??
-      ""
-  };
-}
-
-function pickCandidate(candidates, query) {
-  const safeQuery = String(query || "").trim().toLowerCase();
-  const normalized = candidates.map(normalizeCandidate).filter((item) => item.id != null);
-
-  const exactWallet = normalized.find(
-    (item) => String(item.walletAddress).toLowerCase() === safeQuery
-  );
-  if (exactWallet) return exactWallet;
-
-  const exactName = normalized.find(
-    (item) => String(item.name).toLowerCase() === safeQuery
-  );
-  if (exactName) return exactName;
-
-  return normalized[0] || null;
-}
-
-async function fetchJsonMaybe(url) {
-  const response = await fetch(url, {
-    headers: { accept: "application/json" }
-  });
-
-  const text = await response.text();
-  let payload;
-
-  try {
-    payload = JSON.parse(text);
-  } catch {
-    throw new Error(`Invalid JSON from ${url}`);
-  }
-
-  if (!response.ok) {
-    throw new Error(payload.error || payload.message || `Request failed: ${response.status}`);
-  }
-
-  return payload;
-}
-
-function buildMinimalProfile(address) {
-  return {
-    id: null,
-    name: "Unknown",
-    description: "",
-    walletAddress: address,
-    avatar: null,
-    banner: null,
-    tier: null,
-    tierV2: null,
-    hasCompletedWelcomeTour: false,
-    hasStreamingAccess: false,
-    overrideProfilePictureUrl: null,
-    lastTierSeen: null,
-    badges: []
-  };
-}
-
 async function rpcCall(method, params) {
   const response = await fetch(ABSTRACT_RPC_URL, {
     method: "POST",
@@ -500,6 +401,24 @@ function buildTitleProfile({
   };
 }
 
+function buildMinimalProfile(address) {
+  return {
+    id: null,
+    name: "Unknown",
+    description: "",
+    walletAddress: address,
+    avatar: null,
+    banner: null,
+    tier: null,
+    tierV2: null,
+    hasCompletedWelcomeTour: false,
+    hasStreamingAccess: false,
+    overrideProfilePictureUrl: null,
+    lastTierSeen: null,
+    badges: []
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return sendJson(res, 405, { error: "Only GET requests are supported." });
@@ -526,11 +445,10 @@ export default async function handler(req, res) {
       }))
     ]);
     const liveProfile = buildMinimalProfile(address);
-
     const onchainMetrics = onchain.metrics || {};
     const age = calculateWalletAge(txMetrics.firstTransactionAt, Date.now());
     const displayTier = buildTierDisplay(liveProfile, onchainMetrics);
-    const badgeCount = onchainMetrics.badgeCount ?? liveProfile.badges?.length ?? 0;
+    const badgeCount = onchainMetrics.badgeCount ?? 0;
     const totalFeeEth = weiDecimalToEthString(txMetrics.totalFeeWei, 6);
     const favoriteAppSummary = onchain.favoriteAppDetails
       ? {
