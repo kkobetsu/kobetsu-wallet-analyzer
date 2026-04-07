@@ -119,30 +119,44 @@ function normalizeProfile(user, fallbackWallet = "") {
 }
 
 async function fetchLiveProfile(query) {
-  const suggestUrl = `https://abscope.live/api/suggest?query=${encodeURIComponent(query)}`;
-  const suggestPayload = await fetchJsonMaybe(suggestUrl);
-  const candidates = collectCandidates(suggestPayload);
-  const picked = pickCandidate(candidates, query);
+  const variants = Array.from(new Set([
+    query,
+    query.toLowerCase(),
+    query.toUpperCase(),
+    query.length ? query.charAt(0).toUpperCase() + query.slice(1).toLowerCase() : query
+  ].filter(Boolean)));
 
-  if (!picked?.id) {
-    throw new Error("Profile not found.");
+  for (const variant of variants) {
+    try {
+      const suggestUrl = `https://abscope.live/api/suggest?query=${encodeURIComponent(variant)}`;
+      const suggestPayload = await fetchJsonMaybe(suggestUrl);
+      const candidates = collectCandidates(suggestPayload);
+      const picked = pickCandidate(candidates, variant);
+
+      if (!picked?.id) {
+        continue;
+      }
+
+      const profileUrl = `https://abscope.live/api/proxy/user/${picked.id}`;
+      const profilePayload = await fetchJsonMaybe(profileUrl);
+      const user = profilePayload?.user;
+
+      if (!user) {
+        continue;
+      }
+
+      return {
+        source: {
+          suggestUrl,
+          profileUrl
+        },
+        user: normalizeProfile(user, isValidAddress(query) ? query : "")
+      };
+    } catch {
+    }
   }
 
-  const profileUrl = `https://abscope.live/api/proxy/user/${picked.id}`;
-  const profilePayload = await fetchJsonMaybe(profileUrl);
-  const user = profilePayload?.user;
-
-  if (!user) {
-    throw new Error("Profile payload is missing user data.");
-  }
-
-  return {
-    source: {
-      suggestUrl,
-      profileUrl
-    },
-    user: normalizeProfile(user, isValidAddress(query) ? query : "")
-  };
+  throw new Error("Profile not found.");
 }
 
 async function fetchLocalProfile(query) {
