@@ -2,59 +2,364 @@
   {
     "walletAddress": "0xC1E07504817D6fEd147FB503FD95966d2384ad8f",
     "username": "Kobetsu",
-    "collectedAt": "2026-04-06T20:52:18.866Z",
+    "collectedAt": "2026-04-07T14:17:48.143Z",
     "balance": {
-      "wei": "13558087905840607",
-      "formatted": "0.013558"
+      "wei": "13550764057590607",
+      "formatted": "0.01355"
     },
     "metrics": {
-      "allTimeTx": 22619,
-      "tx24h": 135,
-      "tx7d": 2706,
+      "allTimeTx": 22620,
+      "tx24h": 134,
+      "tx7d": 2011,
       "tx30d": 8000,
-      "averageDailyTx": 52.12,
+      "averageDailyTx": 52.04,
       "firstTransactionAt": "2025-01-27T21:53:00.000Z",
-      "lastTransactionAt": "2026-04-06T20:18:41.000Z",
-      "walletAgeDays": 433.9578572337963,
-      "walletAgeText": "14.3 months"
+      "lastTransactionAt": "2026-04-06T21:07:09.000Z",
+      "walletAgeDays": 434.6838905439815,
+      "walletAgeText": "14.3 months",
+      "totalFeeWei": "54965807233000000",
+      "totalFeeEth": 0.054966,
+      "fee30dWei": "54965807233000000",
+      "fee30dEth": 0.054966,
+      "uniqueDays": 410,
+      "longestStreak": 364
     },
     "profile": {
-      "id": "71017",
+      "id": null,
       "name": "Kobetsu",
-      "description": "Null Space",
+      "description": "",
       "walletAddress": "0xC1E07504817D6fEd147FB503FD95966d2384ad8f",
-      "avatar": {
-        "assetType": "avatar",
-        "tier": 1,
-        "key": 3,
-        "season": 1
-      },
-      "banner": {
-        "assetType": "banner",
-        "tier": 1,
-        "key": 2,
-        "season": 1
-      },
-      "tier": 3,
-      "tierV2": 9,
-      "hasCompletedWelcomeTour": true,
-      "hasStreamingAccess": true,
-      "overrideProfilePictureUrl": "https://cdn.simplehash.com/assets/e6d55a01f939ceb3210da4cf19c524ee567a0bcae426853dc346f95b10e56b3b.png",
-      "lastTierSeen": 3,
+      "avatar": null,
+      "banner": null,
+      "tier": null,
+      "tierV2": null,
+      "hasCompletedWelcomeTour": false,
+      "hasStreamingAccess": false,
+      "overrideProfilePictureUrl": null,
+      "lastTierSeen": null,
+      "badges": [
+        {
+          "id": 2,
+          "name": "Connect Twitter / X",
+          "icon": "twitter",
+          "description": "This badge is awarded to users who have connected their Twitter account.",
+          "type": "regular"
+        },
+        {
+          "id": 3,
+          "name": "Fund Your Account",
+          "icon": "fund-account",
+          "description": "This badge is awarded to those who have funded their account.",
+          "type": "regular"
+        },
+        {
+          "id": 4,
+          "name": "App Voter",
+          "icon": "app-voter",
+          "description": "This badge is awarded to those who have upvoted at least one app in the portal.",
+          "type": "regular"
+        },
+        {
+          "id": 5,
+          "name": "The Trader",
+          "icon": "the-trader",
+          "description": "This badge is awarded to users who trade on the Portal at least once.",
+          "type": "regular"
+        },
+        {
+          "id": 1,
+          "name": "Connect Discord",
+          "icon": "discord",
+          "description": "This badge is awarded to users who have connected their Discord account.",
+          "type": "regular"
+        },
+        {
+          "id": 34,
+          "name": "The Black Star Badge",
+          "icon": "black-star",
+          "description": "This badge is awarded to those who mint a ticket to view \"Still a Black Star\".",
+          "type": "flash"
+        },
+        {
+          "id": 26,
+          "name": "The Big Badge",
+          "icon": "bigcoin",
+          "description": "This badge is awarded to those who mine Bigcoin.",
+          "type": "flash"
+        },
+        {
+          "id": 16,
+          "name": "The Sock Master",
+          "icon": "sock-master",
+          "description": "The badge is awarded to those who own the mythical Abstract Socks.",
+          "type": "secret"
+        },
+        {
+          "id": 13,
+          "name": "Myriad Master",
+          "icon": "myriad-master",
+          "description": "This badge is awarded to users who has any amount of money on a market in Myriad.",
+          "type": "flash"
+        },
+        {
+          "id": 17,
+          "name": "Gigaverse Giga Chad",
+          "icon": "gigaverse",
+          "description": "This badge is awarded to those who create a character in Gigaverse.",
+          "type": "flash"
+        },
+        {
+          "id": 7,
+          "name": "Super Duper",
+          "icon": "super-duper",
+          "description": "This badge is awarded to users who have won the playground and earned positive payouts in a casual or ranked game in Duper.",
+          "type": "flash"
+        },
+        {
+          "id": 19,
+          "name": "Gacha",
+          "icon": "gacha",
+          "description": "This badge is awarded to those who buy and scratch at least one card in Gacha.",
+          "type": "flash"
+        },
+        {
+          "id": 20,
+          "name": "Witty",
+          "icon": "witty",
+          "description": "This badge is awarded to those who play at least one round of Witty.",
+          "type": "flash"
+        },
+        {
+          "id": 23,
+          "name": "Liquid Dinero",
+          "icon": "dinero",
+          "description": "This badge is awarded to those who deposit any amount of ETH into the absETH Dinero LST.",
+          "type": "flash"
+        },
+        {
+          "id": 21,
+          "name": "The Onchain Hero",
+          "icon": "och",
+          "description": "This badge is awarded to those who participated in Season 1 of Onchain Heroes.",
+          "type": "secret"
+        },
+        {
+          "id": 22,
+          "name": "Gacha Goat",
+          "icon": "gacha-goat",
+          "description": "This badge is awarded to those who buy and scratch at least 500 cards in Gacha.",
+          "type": "secret"
+        },
+        {
+          "id": 25,
+          "name": "The Captain",
+          "icon": "captain",
+          "description": "This badge is awarded to those who earn any amount of mXP on Captain and Co.",
+          "type": "flash"
+        },
+        {
+          "id": 27,
+          "name": "Multiplier Mommy",
+          "icon": "multiplier-mommy",
+          "description": "This badge is awarded to those who play 300 games of Multiplier.",
+          "type": "secret"
+        },
+        {
+          "id": 18,
+          "name": "Roach Racer",
+          "icon": "roach-racing",
+          "description": "This badge is awarded to those who acquire the second slot in roach racing and participate in any race.",
+          "type": "flash"
+        },
+        {
+          "id": 28,
+          "name": "Myriad Grand Master",
+          "icon": "myriad-mastermind",
+          "description": "This badge is awarded to those who trade at least $500 USDC in trading volume on Myriad Markets.",
+          "type": "secret"
+        },
+        {
+          "id": 31,
+          "name": "Abstract Games Survivor",
+          "icon": "abstract-games-survivor",
+          "description": "This badge is awarded to those who participated in the Abstract Games.",
+          "type": "secret"
+        },
+        {
+          "id": 40,
+          "name": "ARTMS Superfan Badge",
+          "icon": "artms",
+          "description": "This badge is awarded to those who mint the ARTMS time-limited edition photocard.",
+          "type": "flash"
+        },
+        {
+          "id": 29,
+          "name": "Giga Juicy",
+          "icon": "giga-juicy",
+          "description": "This badge is awarded to those who consume Giga Juice in Gigaverse.",
+          "type": "flash"
+        },
+        {
+          "id": 30,
+          "name": "Office Worker",
+          "icon": "office-worker",
+          "description": "The badge is awarded to those who advance to “Intern I” in Promotion Royale.",
+          "type": "flash"
+        },
+        {
+          "id": 38,
+          "name": "The Duper Academy Badge",
+          "icon": "duper-redux",
+          "description": "This badge is awarded to those who completed both tutorials and played 1 casual or ranked game.",
+          "type": "flash"
+        },
+        {
+          "id": 36,
+          "name": "The Mighty Badge",
+          "icon": "moody-mights",
+          "description": "This badge is awarded to those who mint a Season 2 activation package in Moody Madness.",
+          "type": "flash"
+        },
+        {
+          "id": 32,
+          "name": "“In the Moment” - Monaco Badge",
+          "icon": "redbull-racing-monaco",
+          "description": "This badge is awarded to those who mint all three days of the Red Bull Racing (Monaco) Open Edition mint.",
+          "type": "flash"
+        },
+        {
+          "id": 37,
+          "name": "Abstract tripleS Double Class Objekt",
+          "icon": "triples",
+          "description": "This badge is awarded to those who mint the Abstract tripleS time-limited edition Objekt.",
+          "type": "flash"
+        },
+        {
+          "id": 35,
+          "name": "Sugartown Burn Badge",
+          "icon": "sugartown",
+          "description": "This badge is awarded to those who burn an energy card in Sugartown.",
+          "type": "flash"
+        },
+        {
+          "id": 24,
+          "name": "Clippy",
+          "icon": "clippy",
+          "description": "This badge is awarded to those who are actively clipping great content on Abstract Streams.",
+          "type": "secret"
+        },
+        {
+          "id": 42,
+          "name": "Cambrian Artifact Hunter",
+          "icon": "cambria-gold-rush",
+          "description": "This badge is awarded to those who cash-in an artifact from a kill in Cambria.",
+          "type": "flash"
+        },
+        {
+          "id": 41,
+          "name": "\"In the Moment\" - Abu Dhabi Badge",
+          "icon": "redbull-racing-abu-dhabi",
+          "description": "This badge is awarded to those who mint all three days of the Red Bull Racing (Abu Dhabi) Open Edition mint.",
+          "type": "flash"
+        },
+        {
+          "id": 39,
+          "name": "The Aborean LP Badge",
+          "icon": "aborean",
+          "description": "This badge is awarded to those who provide liquidity at least once on Aborean Finance.",
+          "type": "flash"
+        },
+        {
+          "id": 45,
+          "name": "The Email Notification Badge",
+          "icon": "email-notification",
+          "description": "This badge is awarded to those who enable email notifications on their account. Visit your profile page to update your preferences.",
+          "type": "regular"
+        },
+        {
+          "id": 43,
+          "name": "The Cryptoys Collector Badge",
+          "icon": "cryptoys-collector",
+          "description": "This badge is awarded to collectors who mint a Cryptoy.",
+          "type": "flash"
+        },
+        {
+          "id": 46,
+          "name": "The Speed Trader",
+          "icon": "speed-trader",
+          "description": "This badge is awarded to those who open at least one PENGU trade on Speed Trade in Demo mode",
+          "type": "flash"
+        },
+        {
+          "id": 47,
+          "name": "The Ultra Badge",
+          "icon": "ultraman",
+          "description": "This badge is awarded to anyone who purchases a Treasure Box on Bythen Treasure.",
+          "type": "flash"
+        },
+        {
+          "id": 50,
+          "name": "The Gate LP Badge",
+          "icon": "gate-aborean",
+          "description": "This badge is awarded to those who LP any amount into either Gate DeFi Pool on Abstract.",
+          "type": "flash"
+        },
+        {
+          "id": 51,
+          "name": "The Moody Drops Badge",
+          "icon": "moody-black",
+          "description": "This badge is awarded to those who drop 100 Black Diamonds in Moody Drops.",
+          "type": "flash"
+        },
+        {
+          "id": 53,
+          "name": "The Flash Trader",
+          "icon": "flash-trader",
+          "description": "This badge is awarded to those who trade on the new and improved Trade tab in the Portal.",
+          "type": "flash"
+        },
+        {
+          "id": 48,
+          "name": "The One Year Badge",
+          "icon": "wrapped",
+          "description": "This badge is awarded to those who complete the Abstract Wrapped ceremony.",
+          "type": "regular"
+        },
+        {
+          "id": 49,
+          "name": "The Mogger",
+          "icon": "mogger",
+          "description": "This badge is awarded to players who pick up the Badge on Level 5 of the maze.",
+          "type": "flash"
+        },
+        {
+          "id": 52,
+          "name": "The Master Rugpuller",
+          "icon": "rugpull-bakery",
+          "description": "This badge is awarded to those who baked 1,000 cookies on RugPull Bakery S1.",
+          "type": "secret"
+        }
+      ],
+      "tierName": "Gold",
       "badgeCount": 43,
-      "badges": []
+      "favoriteApp": "Rugpull Bakery",
+      "wojak": {
+        "title": "OG",
+        "score": 100,
+        "reason": "435d onchain age · 22620 tx · 43 badges · 410 active days · 364 streak · 0.0550 ETH fee · fav Rugpull Bakery"
+      }
     },
     "appSummary": {
       "apps": [
         {
           "name": "Ether",
           "address": "0x000000000000000000000000000000000000800a",
-          "txCount": 3991
+          "txCount": 3990
         },
         {
           "name": "Bigcoin",
           "address": "0xdf70075737e9f96b078ab4461eee3e055e061223",
-          "txCount": 6
+          "txCount": 7
         },
         {
           "name": "MXP",
@@ -75,7 +380,1484 @@
       "mostUsed": {
         "name": "Ether",
         "address": "0x000000000000000000000000000000000000800a",
-        "txCount": 3991
+        "txCount": 3990
+      }
+    },
+    "onchain": {
+      "metrics": {
+        "totalTransactions": 22620,
+        "uniqueDays": 410,
+        "longestStreak": 364,
+        "tierName": "Gold",
+        "favoriteApp": "Rugpull Bakery",
+        "badgeCount": 43
+      },
+      "heatmap": [
+        {
+          "date": "2025-04-08",
+          "count": 59
+        },
+        {
+          "date": "2025-04-09",
+          "count": 106
+        },
+        {
+          "date": "2025-04-10",
+          "count": 36
+        },
+        {
+          "date": "2025-04-11",
+          "count": 132
+        },
+        {
+          "date": "2025-04-12",
+          "count": 218
+        },
+        {
+          "date": "2025-04-13",
+          "count": 58
+        },
+        {
+          "date": "2025-04-14",
+          "count": 55
+        },
+        {
+          "date": "2025-04-15",
+          "count": 61
+        },
+        {
+          "date": "2025-04-16",
+          "count": 14
+        },
+        {
+          "date": "2025-04-17",
+          "count": 46
+        },
+        {
+          "date": "2025-04-18",
+          "count": 31
+        },
+        {
+          "date": "2025-04-19",
+          "count": 34
+        },
+        {
+          "date": "2025-04-20",
+          "count": 8
+        },
+        {
+          "date": "2025-04-21",
+          "count": 12
+        },
+        {
+          "date": "2025-04-22",
+          "count": 20
+        },
+        {
+          "date": "2025-04-23",
+          "count": 15
+        },
+        {
+          "date": "2025-04-24",
+          "count": 12
+        },
+        {
+          "date": "2025-04-25",
+          "count": 25
+        },
+        {
+          "date": "2025-04-26",
+          "count": 17
+        },
+        {
+          "date": "2025-04-27",
+          "count": 18
+        },
+        {
+          "date": "2025-04-28",
+          "count": 15
+        },
+        {
+          "date": "2025-04-29",
+          "count": 11
+        },
+        {
+          "date": "2025-04-30",
+          "count": 9
+        },
+        {
+          "date": "2025-05-01",
+          "count": 14
+        },
+        {
+          "date": "2025-05-02",
+          "count": 11
+        },
+        {
+          "date": "2025-05-03",
+          "count": 3
+        },
+        {
+          "date": "2025-05-04",
+          "count": 16
+        },
+        {
+          "date": "2025-05-05",
+          "count": 10
+        },
+        {
+          "date": "2025-05-06",
+          "count": 5
+        },
+        {
+          "date": "2025-05-07",
+          "count": 17
+        },
+        {
+          "date": "2025-05-08",
+          "count": 17
+        },
+        {
+          "date": "2025-05-09",
+          "count": 16
+        },
+        {
+          "date": "2025-05-10",
+          "count": 11
+        },
+        {
+          "date": "2025-05-11",
+          "count": 11
+        },
+        {
+          "date": "2025-05-12",
+          "count": 3
+        },
+        {
+          "date": "2025-05-13",
+          "count": 8
+        },
+        {
+          "date": "2025-05-14",
+          "count": 14
+        },
+        {
+          "date": "2025-05-15",
+          "count": 136
+        },
+        {
+          "date": "2025-05-16",
+          "count": 39
+        },
+        {
+          "date": "2025-05-17",
+          "count": 38
+        },
+        {
+          "date": "2025-05-18",
+          "count": 32
+        },
+        {
+          "date": "2025-05-19",
+          "count": 36
+        },
+        {
+          "date": "2025-05-20",
+          "count": 162
+        },
+        {
+          "date": "2025-05-21",
+          "count": 462
+        },
+        {
+          "date": "2025-05-22",
+          "count": 15
+        },
+        {
+          "date": "2025-05-23",
+          "count": 15
+        },
+        {
+          "date": "2025-05-24",
+          "count": 6
+        },
+        {
+          "date": "2025-05-25",
+          "count": 5
+        },
+        {
+          "date": "2025-05-26",
+          "count": 120
+        },
+        {
+          "date": "2025-05-27",
+          "count": 27
+        },
+        {
+          "date": "2025-05-28",
+          "count": 47
+        },
+        {
+          "date": "2025-05-29",
+          "count": 42
+        },
+        {
+          "date": "2025-05-30",
+          "count": 15
+        },
+        {
+          "date": "2025-05-31",
+          "count": 8
+        },
+        {
+          "date": "2025-06-01",
+          "count": 19
+        },
+        {
+          "date": "2025-06-02",
+          "count": 49
+        },
+        {
+          "date": "2025-06-03",
+          "count": 15
+        },
+        {
+          "date": "2025-06-04",
+          "count": 5
+        },
+        {
+          "date": "2025-06-05",
+          "count": 8
+        },
+        {
+          "date": "2025-06-06",
+          "count": 3
+        },
+        {
+          "date": "2025-06-07",
+          "count": 8
+        },
+        {
+          "date": "2025-06-08",
+          "count": 2
+        },
+        {
+          "date": "2025-06-09",
+          "count": 5
+        },
+        {
+          "date": "2025-06-10",
+          "count": 53
+        },
+        {
+          "date": "2025-06-11",
+          "count": 13
+        },
+        {
+          "date": "2025-06-12",
+          "count": 8
+        },
+        {
+          "date": "2025-06-13",
+          "count": 24
+        },
+        {
+          "date": "2025-06-14",
+          "count": 26
+        },
+        {
+          "date": "2025-06-15",
+          "count": 3
+        },
+        {
+          "date": "2025-06-16",
+          "count": 47
+        },
+        {
+          "date": "2025-06-17",
+          "count": 25
+        },
+        {
+          "date": "2025-06-18",
+          "count": 34
+        },
+        {
+          "date": "2025-06-19",
+          "count": 13
+        },
+        {
+          "date": "2025-06-20",
+          "count": 17
+        },
+        {
+          "date": "2025-06-21",
+          "count": 18
+        },
+        {
+          "date": "2025-06-22",
+          "count": 14
+        },
+        {
+          "date": "2025-06-23",
+          "count": 41
+        },
+        {
+          "date": "2025-06-24",
+          "count": 20
+        },
+        {
+          "date": "2025-06-25",
+          "count": 16
+        },
+        {
+          "date": "2025-06-26",
+          "count": 17
+        },
+        {
+          "date": "2025-06-27",
+          "count": 22
+        },
+        {
+          "date": "2025-06-28",
+          "count": 25
+        },
+        {
+          "date": "2025-06-29",
+          "count": 20
+        },
+        {
+          "date": "2025-06-30",
+          "count": 41
+        },
+        {
+          "date": "2025-07-01",
+          "count": 23
+        },
+        {
+          "date": "2025-07-02",
+          "count": 22
+        },
+        {
+          "date": "2025-07-03",
+          "count": 15
+        },
+        {
+          "date": "2025-07-04",
+          "count": 12
+        },
+        {
+          "date": "2025-07-05",
+          "count": 17
+        },
+        {
+          "date": "2025-07-06",
+          "count": 17
+        },
+        {
+          "date": "2025-07-07",
+          "count": 33
+        },
+        {
+          "date": "2025-07-08",
+          "count": 15
+        },
+        {
+          "date": "2025-07-09",
+          "count": 20
+        },
+        {
+          "date": "2025-07-10",
+          "count": 29
+        },
+        {
+          "date": "2025-07-11",
+          "count": 23
+        },
+        {
+          "date": "2025-07-12",
+          "count": 27
+        },
+        {
+          "date": "2025-07-13",
+          "count": 26
+        },
+        {
+          "date": "2025-07-14",
+          "count": 30
+        },
+        {
+          "date": "2025-07-15",
+          "count": 52
+        },
+        {
+          "date": "2025-07-16",
+          "count": 33
+        },
+        {
+          "date": "2025-07-17",
+          "count": 119
+        },
+        {
+          "date": "2025-07-18",
+          "count": 27
+        },
+        {
+          "date": "2025-07-19",
+          "count": 25
+        },
+        {
+          "date": "2025-07-20",
+          "count": 22
+        },
+        {
+          "date": "2025-07-21",
+          "count": 45
+        },
+        {
+          "date": "2025-07-22",
+          "count": 6
+        },
+        {
+          "date": "2025-07-23",
+          "count": 11
+        },
+        {
+          "date": "2025-07-24",
+          "count": 18
+        },
+        {
+          "date": "2025-07-25",
+          "count": 9
+        },
+        {
+          "date": "2025-07-26",
+          "count": 12
+        },
+        {
+          "date": "2025-07-27",
+          "count": 11
+        },
+        {
+          "date": "2025-07-28",
+          "count": 21
+        },
+        {
+          "date": "2025-07-29",
+          "count": 27
+        },
+        {
+          "date": "2025-07-30",
+          "count": 11
+        },
+        {
+          "date": "2025-07-31",
+          "count": 23
+        },
+        {
+          "date": "2025-08-01",
+          "count": 8
+        },
+        {
+          "date": "2025-08-02",
+          "count": 7
+        },
+        {
+          "date": "2025-08-03",
+          "count": 14
+        },
+        {
+          "date": "2025-08-04",
+          "count": 11
+        },
+        {
+          "date": "2025-08-05",
+          "count": 17
+        },
+        {
+          "date": "2025-08-06",
+          "count": 5
+        },
+        {
+          "date": "2025-08-07",
+          "count": 23
+        },
+        {
+          "date": "2025-08-08",
+          "count": 18
+        },
+        {
+          "date": "2025-08-09",
+          "count": 5
+        },
+        {
+          "date": "2025-08-10",
+          "count": 17
+        },
+        {
+          "date": "2025-08-11",
+          "count": 10
+        },
+        {
+          "date": "2025-08-12",
+          "count": 19
+        },
+        {
+          "date": "2025-08-13",
+          "count": 13
+        },
+        {
+          "date": "2025-08-14",
+          "count": 17
+        },
+        {
+          "date": "2025-08-15",
+          "count": 32
+        },
+        {
+          "date": "2025-08-16",
+          "count": 12
+        },
+        {
+          "date": "2025-08-17",
+          "count": 10
+        },
+        {
+          "date": "2025-08-18",
+          "count": 35
+        },
+        {
+          "date": "2025-08-19",
+          "count": 3
+        },
+        {
+          "date": "2025-08-20",
+          "count": 10
+        },
+        {
+          "date": "2025-08-21",
+          "count": 7
+        },
+        {
+          "date": "2025-08-22",
+          "count": 18
+        },
+        {
+          "date": "2025-08-23",
+          "count": 15
+        },
+        {
+          "date": "2025-08-24",
+          "count": 7
+        },
+        {
+          "date": "2025-08-25",
+          "count": 14
+        },
+        {
+          "date": "2025-08-26",
+          "count": 22
+        },
+        {
+          "date": "2025-08-27",
+          "count": 13
+        },
+        {
+          "date": "2025-08-28",
+          "count": 10
+        },
+        {
+          "date": "2025-08-29",
+          "count": 12
+        },
+        {
+          "date": "2025-08-30",
+          "count": 12
+        },
+        {
+          "date": "2025-08-31",
+          "count": 3
+        },
+        {
+          "date": "2025-09-01",
+          "count": 20
+        },
+        {
+          "date": "2025-09-02",
+          "count": 14
+        },
+        {
+          "date": "2025-09-03",
+          "count": 18
+        },
+        {
+          "date": "2025-09-04",
+          "count": 8
+        },
+        {
+          "date": "2025-09-05",
+          "count": 8
+        },
+        {
+          "date": "2025-09-06",
+          "count": 10
+        },
+        {
+          "date": "2025-09-07",
+          "count": 9
+        },
+        {
+          "date": "2025-09-08",
+          "count": 9
+        },
+        {
+          "date": "2025-09-09",
+          "count": 14
+        },
+        {
+          "date": "2025-09-10",
+          "count": 22
+        },
+        {
+          "date": "2025-09-11",
+          "count": 6
+        },
+        {
+          "date": "2025-09-12",
+          "count": 14
+        },
+        {
+          "date": "2025-09-13",
+          "count": 5
+        },
+        {
+          "date": "2025-09-14",
+          "count": 7
+        },
+        {
+          "date": "2025-09-15",
+          "count": 19
+        },
+        {
+          "date": "2025-09-16",
+          "count": 27
+        },
+        {
+          "date": "2025-09-17",
+          "count": 12
+        },
+        {
+          "date": "2025-09-18",
+          "count": 6
+        },
+        {
+          "date": "2025-09-19",
+          "count": 14
+        },
+        {
+          "date": "2025-09-20",
+          "count": 8
+        },
+        {
+          "date": "2025-09-21",
+          "count": 11
+        },
+        {
+          "date": "2025-09-22",
+          "count": 13
+        },
+        {
+          "date": "2025-09-23",
+          "count": 11
+        },
+        {
+          "date": "2025-09-24",
+          "count": 25
+        },
+        {
+          "date": "2025-09-25",
+          "count": 46
+        },
+        {
+          "date": "2025-09-26",
+          "count": 9
+        },
+        {
+          "date": "2025-09-27",
+          "count": 8
+        },
+        {
+          "date": "2025-09-28",
+          "count": 8
+        },
+        {
+          "date": "2025-09-29",
+          "count": 12
+        },
+        {
+          "date": "2025-09-30",
+          "count": 10
+        },
+        {
+          "date": "2025-10-01",
+          "count": 11
+        },
+        {
+          "date": "2025-10-02",
+          "count": 16
+        },
+        {
+          "date": "2025-10-03",
+          "count": 9
+        },
+        {
+          "date": "2025-10-04",
+          "count": 10
+        },
+        {
+          "date": "2025-10-05",
+          "count": 9
+        },
+        {
+          "date": "2025-10-06",
+          "count": 19
+        },
+        {
+          "date": "2025-10-07",
+          "count": 19
+        },
+        {
+          "date": "2025-10-08",
+          "count": 21
+        },
+        {
+          "date": "2025-10-09",
+          "count": 25
+        },
+        {
+          "date": "2025-10-10",
+          "count": 9
+        },
+        {
+          "date": "2025-10-11",
+          "count": 14
+        },
+        {
+          "date": "2025-10-12",
+          "count": 10
+        },
+        {
+          "date": "2025-10-13",
+          "count": 7
+        },
+        {
+          "date": "2025-10-14",
+          "count": 13
+        },
+        {
+          "date": "2025-10-15",
+          "count": 9
+        },
+        {
+          "date": "2025-10-16",
+          "count": 22
+        },
+        {
+          "date": "2025-10-17",
+          "count": 10
+        },
+        {
+          "date": "2025-10-18",
+          "count": 7
+        },
+        {
+          "date": "2025-10-19",
+          "count": 15
+        },
+        {
+          "date": "2025-10-20",
+          "count": 11
+        },
+        {
+          "date": "2025-10-21",
+          "count": 11
+        },
+        {
+          "date": "2025-10-22",
+          "count": 12
+        },
+        {
+          "date": "2025-10-23",
+          "count": 13
+        },
+        {
+          "date": "2025-10-24",
+          "count": 11
+        },
+        {
+          "date": "2025-10-25",
+          "count": 12
+        },
+        {
+          "date": "2025-10-26",
+          "count": 9
+        },
+        {
+          "date": "2025-10-27",
+          "count": 11
+        },
+        {
+          "date": "2025-10-28",
+          "count": 7
+        },
+        {
+          "date": "2025-10-29",
+          "count": 11
+        },
+        {
+          "date": "2025-10-30",
+          "count": 17
+        },
+        {
+          "date": "2025-10-31",
+          "count": 6
+        },
+        {
+          "date": "2025-11-01",
+          "count": 9
+        },
+        {
+          "date": "2025-11-02",
+          "count": 9
+        },
+        {
+          "date": "2025-11-03",
+          "count": 18
+        },
+        {
+          "date": "2025-11-04",
+          "count": 15
+        },
+        {
+          "date": "2025-11-05",
+          "count": 9
+        },
+        {
+          "date": "2025-11-06",
+          "count": 6
+        },
+        {
+          "date": "2025-11-07",
+          "count": 9
+        },
+        {
+          "date": "2025-11-08",
+          "count": 10
+        },
+        {
+          "date": "2025-11-09",
+          "count": 8
+        },
+        {
+          "date": "2025-11-10",
+          "count": 25
+        },
+        {
+          "date": "2025-11-11",
+          "count": 17
+        },
+        {
+          "date": "2025-11-12",
+          "count": 9
+        },
+        {
+          "date": "2025-11-13",
+          "count": 6
+        },
+        {
+          "date": "2025-11-14",
+          "count": 9
+        },
+        {
+          "date": "2025-11-15",
+          "count": 7
+        },
+        {
+          "date": "2025-11-16",
+          "count": 7
+        },
+        {
+          "date": "2025-11-17",
+          "count": 6
+        },
+        {
+          "date": "2025-11-18",
+          "count": 20
+        },
+        {
+          "date": "2025-11-19",
+          "count": 15
+        },
+        {
+          "date": "2025-11-20",
+          "count": 5
+        },
+        {
+          "date": "2025-11-21",
+          "count": 12
+        },
+        {
+          "date": "2025-11-22",
+          "count": 6
+        },
+        {
+          "date": "2025-11-23",
+          "count": 9
+        },
+        {
+          "date": "2025-11-24",
+          "count": 16
+        },
+        {
+          "date": "2025-11-25",
+          "count": 12
+        },
+        {
+          "date": "2025-11-26",
+          "count": 10
+        },
+        {
+          "date": "2025-11-27",
+          "count": 6
+        },
+        {
+          "date": "2025-11-28",
+          "count": 9
+        },
+        {
+          "date": "2025-11-29",
+          "count": 11
+        },
+        {
+          "date": "2025-11-30",
+          "count": 8
+        },
+        {
+          "date": "2025-12-01",
+          "count": 20
+        },
+        {
+          "date": "2025-12-02",
+          "count": 9
+        },
+        {
+          "date": "2025-12-03",
+          "count": 6
+        },
+        {
+          "date": "2025-12-04",
+          "count": 7
+        },
+        {
+          "date": "2025-12-05",
+          "count": 9
+        },
+        {
+          "date": "2025-12-06",
+          "count": 7
+        },
+        {
+          "date": "2025-12-07",
+          "count": 6
+        },
+        {
+          "date": "2025-12-08",
+          "count": 9
+        },
+        {
+          "date": "2025-12-09",
+          "count": 12
+        },
+        {
+          "date": "2025-12-10",
+          "count": 9
+        },
+        {
+          "date": "2025-12-11",
+          "count": 6
+        },
+        {
+          "date": "2025-12-12",
+          "count": 32
+        },
+        {
+          "date": "2025-12-13",
+          "count": 37
+        },
+        {
+          "date": "2025-12-14",
+          "count": 11
+        },
+        {
+          "date": "2025-12-15",
+          "count": 28
+        },
+        {
+          "date": "2025-12-16",
+          "count": 19
+        },
+        {
+          "date": "2025-12-17",
+          "count": 11
+        },
+        {
+          "date": "2025-12-18",
+          "count": 8
+        },
+        {
+          "date": "2025-12-19",
+          "count": 7
+        },
+        {
+          "date": "2025-12-20",
+          "count": 6
+        },
+        {
+          "date": "2025-12-21",
+          "count": 6
+        },
+        {
+          "date": "2025-12-22",
+          "count": 10
+        },
+        {
+          "date": "2025-12-23",
+          "count": 8
+        },
+        {
+          "date": "2025-12-24",
+          "count": 6
+        },
+        {
+          "date": "2025-12-25",
+          "count": 8
+        },
+        {
+          "date": "2025-12-26",
+          "count": 6
+        },
+        {
+          "date": "2025-12-27",
+          "count": 8
+        },
+        {
+          "date": "2025-12-28",
+          "count": 6
+        },
+        {
+          "date": "2025-12-29",
+          "count": 13
+        },
+        {
+          "date": "2025-12-30",
+          "count": 9
+        },
+        {
+          "date": "2025-12-31",
+          "count": 13
+        },
+        {
+          "date": "2026-01-01",
+          "count": 5
+        },
+        {
+          "date": "2026-01-02",
+          "count": 10
+        },
+        {
+          "date": "2026-01-03",
+          "count": 10
+        },
+        {
+          "date": "2026-01-04",
+          "count": 13
+        },
+        {
+          "date": "2026-01-05",
+          "count": 23
+        },
+        {
+          "date": "2026-01-06",
+          "count": 14
+        },
+        {
+          "date": "2026-01-07",
+          "count": 8
+        },
+        {
+          "date": "2026-01-08",
+          "count": 7
+        },
+        {
+          "date": "2026-01-09",
+          "count": 8
+        },
+        {
+          "date": "2026-01-10",
+          "count": 9
+        },
+        {
+          "date": "2026-01-11",
+          "count": 8
+        },
+        {
+          "date": "2026-01-12",
+          "count": 9
+        },
+        {
+          "date": "2026-01-13",
+          "count": 8
+        },
+        {
+          "date": "2026-01-14",
+          "count": 10
+        },
+        {
+          "date": "2026-01-15",
+          "count": 25
+        },
+        {
+          "date": "2026-01-16",
+          "count": 3
+        },
+        {
+          "date": "2026-01-17",
+          "count": 6
+        },
+        {
+          "date": "2026-01-18",
+          "count": 9
+        },
+        {
+          "date": "2026-01-19",
+          "count": 7
+        },
+        {
+          "date": "2026-01-20",
+          "count": 13
+        },
+        {
+          "date": "2026-01-21",
+          "count": 9
+        },
+        {
+          "date": "2026-01-22",
+          "count": 12
+        },
+        {
+          "date": "2026-01-23",
+          "count": 8
+        },
+        {
+          "date": "2026-01-24",
+          "count": 5
+        },
+        {
+          "date": "2026-01-25",
+          "count": 17
+        },
+        {
+          "date": "2026-01-26",
+          "count": 13
+        },
+        {
+          "date": "2026-01-27",
+          "count": 8
+        },
+        {
+          "date": "2026-01-28",
+          "count": 10
+        },
+        {
+          "date": "2026-01-29",
+          "count": 17
+        },
+        {
+          "date": "2026-01-30",
+          "count": 5
+        },
+        {
+          "date": "2026-01-31",
+          "count": 9
+        },
+        {
+          "date": "2026-02-01",
+          "count": 4
+        },
+        {
+          "date": "2026-02-02",
+          "count": 10
+        },
+        {
+          "date": "2026-02-03",
+          "count": 6
+        },
+        {
+          "date": "2026-02-04",
+          "count": 6
+        },
+        {
+          "date": "2026-02-05",
+          "count": 8
+        },
+        {
+          "date": "2026-02-06",
+          "count": 9
+        },
+        {
+          "date": "2026-02-07",
+          "count": 7
+        },
+        {
+          "date": "2026-02-08",
+          "count": 13
+        },
+        {
+          "date": "2026-02-09",
+          "count": 8
+        },
+        {
+          "date": "2026-02-10",
+          "count": 9
+        },
+        {
+          "date": "2026-02-11",
+          "count": 3
+        },
+        {
+          "date": "2026-02-12",
+          "count": 24
+        },
+        {
+          "date": "2026-02-13",
+          "count": 12
+        },
+        {
+          "date": "2026-02-14",
+          "count": 7
+        },
+        {
+          "date": "2026-02-15",
+          "count": 8
+        },
+        {
+          "date": "2026-02-16",
+          "count": 9
+        },
+        {
+          "date": "2026-02-17",
+          "count": 8
+        },
+        {
+          "date": "2026-02-18",
+          "count": 11
+        },
+        {
+          "date": "2026-02-19",
+          "count": 11
+        },
+        {
+          "date": "2026-02-20",
+          "count": 12
+        },
+        {
+          "date": "2026-02-21",
+          "count": 15
+        },
+        {
+          "date": "2026-02-22",
+          "count": 7
+        },
+        {
+          "date": "2026-02-23",
+          "count": 19
+        },
+        {
+          "date": "2026-02-24",
+          "count": 6
+        },
+        {
+          "date": "2026-02-25",
+          "count": 12
+        },
+        {
+          "date": "2026-02-26",
+          "count": 10
+        },
+        {
+          "date": "2026-02-27",
+          "count": 6
+        },
+        {
+          "date": "2026-02-28",
+          "count": 9
+        },
+        {
+          "date": "2026-03-01",
+          "count": 6
+        },
+        {
+          "date": "2026-03-02",
+          "count": 19
+        },
+        {
+          "date": "2026-03-03",
+          "count": 322
+        },
+        {
+          "date": "2026-03-04",
+          "count": 1974
+        },
+        {
+          "date": "2026-03-05",
+          "count": 172
+        },
+        {
+          "date": "2026-03-06",
+          "count": 270
+        },
+        {
+          "date": "2026-03-07",
+          "count": 73
+        },
+        {
+          "date": "2026-03-08",
+          "count": 29
+        },
+        {
+          "date": "2026-03-09",
+          "count": 80
+        },
+        {
+          "date": "2026-03-10",
+          "count": 17
+        },
+        {
+          "date": "2026-03-11",
+          "count": 240
+        },
+        {
+          "date": "2026-03-12",
+          "count": 250
+        },
+        {
+          "date": "2026-03-13",
+          "count": 332
+        },
+        {
+          "date": "2026-03-14",
+          "count": 399
+        },
+        {
+          "date": "2026-03-15",
+          "count": 262
+        },
+        {
+          "date": "2026-03-16",
+          "count": 274
+        },
+        {
+          "date": "2026-03-17",
+          "count": 243
+        },
+        {
+          "date": "2026-03-18",
+          "count": 266
+        },
+        {
+          "date": "2026-03-19",
+          "count": 176
+        },
+        {
+          "date": "2026-03-20",
+          "count": 105
+        },
+        {
+          "date": "2026-03-21",
+          "count": 19
+        },
+        {
+          "date": "2026-03-22",
+          "count": 74
+        },
+        {
+          "date": "2026-03-23",
+          "count": 473
+        },
+        {
+          "date": "2026-03-24",
+          "count": 252
+        },
+        {
+          "date": "2026-03-25",
+          "count": 201
+        },
+        {
+          "date": "2026-03-26",
+          "count": 595
+        },
+        {
+          "date": "2026-03-27",
+          "count": 303
+        },
+        {
+          "date": "2026-03-28",
+          "count": 14
+        },
+        {
+          "date": "2026-03-29",
+          "count": 894
+        },
+        {
+          "date": "2026-03-30",
+          "count": 2701
+        },
+        {
+          "date": "2026-03-31",
+          "count": 356
+        },
+        {
+          "date": "2026-04-01",
+          "count": 448
+        },
+        {
+          "date": "2026-04-02",
+          "count": 571
+        },
+        {
+          "date": "2026-04-03",
+          "count": 331
+        },
+        {
+          "date": "2026-04-04",
+          "count": 94
+        },
+        {
+          "date": "2026-04-05",
+          "count": 196
+        },
+        {
+          "date": "2026-04-06",
+          "count": 136
+        }
+      ],
+      "favoriteAppDetails": {
+        "address": "0x080f7ad315ab65f02a821f072170d469d444a6c4",
+        "txCount": 4472,
+        "totalValueWei": "0",
+        "firstInteraction": "2026-03-29",
+        "lastInteraction": "2026-04-03",
+        "activeDays": 6,
+        "name": "Rugpull Bakery"
       }
     },
     "chart": [
@@ -161,8 +1943,18 @@
         "date": "2026-04-06",
         "label": "04-06",
         "fullDate": "2026-04-06",
-        "count": 135
+        "count": 136
       }
-    ]
+    ],
+    "persona": {
+      "title": "OG",
+      "score": 100,
+      "reason": "435d onchain age · 22620 tx · 43 badges · 410 active days · 364 streak · 0.0550 ETH fee · fav Rugpull Bakery"
+    },
+    "favoriteAppSummary": {
+      "name": "Rugpull Bakery",
+      "address": "0x080f7ad315ab65f02a821f072170d469d444a6c4",
+      "txCount": 4472
+    }
   }
 ]
