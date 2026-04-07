@@ -481,11 +481,11 @@
         </article>
 
         <article class="metric-card">
-          <div class="metric-label">Profile Assets</div>
-          <div class="metric-value" id="asset-summary">-</div>
+          <div class="metric-label">Wojak Title</div>
+          <div class="metric-value" id="wojak-title">-</div>
           <div class="metric-foot">
-            <span id="avatar-foot">Avatar: -</span>
-            <span id="banner-foot">Banner: -</span>
+            <span id="wojak-score">Score: -</span>
+            <span id="wojak-reason">-</span>
           </div>
         </article>
       </div>
@@ -502,11 +502,11 @@
       </article>
 
       <article class="metric-card">
-        <div class="metric-label">Balance</div>
-        <div class="metric-value" id="balance-value">-</div>
+        <div class="metric-label">Fee Spent</div>
+        <div class="metric-value" id="fee-value">-</div>
         <div class="metric-foot">
-          <span>Abstract</span>
-          <span id="balance-foot">ETH</span>
+          <span>All-time</span>
+          <span id="fee-foot">ETH</span>
         </div>
       </article>
 
@@ -520,11 +520,11 @@
       </article>
 
       <article class="metric-card">
-        <div class="metric-label">Most Used</div>
-        <div class="metric-value" id="most-used-value">-</div>
+        <div class="metric-label">Favorite App</div>
+        <div class="metric-value" id="favorite-app-value">-</div>
         <div class="metric-foot">
-          <span>App summary</span>
-          <span id="most-used-foot">-</span>
+          <span>Portal / Token</span>
+          <span id="favorite-app-foot">-</span>
         </div>
       </article>
     </section>
@@ -552,20 +552,20 @@
       badgeFoot: document.getElementById("badge-foot"),
       tierV2: document.getElementById("tier-v2-value"),
       streamingFoot: document.getElementById("streaming-foot"),
-      assetSummary: document.getElementById("asset-summary"),
-      avatarFoot: document.getElementById("avatar-foot"),
-      bannerFoot: document.getElementById("banner-foot")
+      wojakTitle: document.getElementById("wojak-title"),
+      wojakScore: document.getElementById("wojak-score"),
+      wojakReason: document.getElementById("wojak-reason")
     };
 
     const metricFields = {
       tx: document.getElementById("tx-value"),
       txFoot: document.getElementById("tx-foot"),
-      balance: document.getElementById("balance-value"),
-      balanceFoot: document.getElementById("balance-foot"),
+      fee: document.getElementById("fee-value"),
+      feeFoot: document.getElementById("fee-foot"),
       age: document.getElementById("age-value"),
       firstTxFoot: document.getElementById("first-tx-foot"),
-      mostUsed: document.getElementById("most-used-value"),
-      mostUsedFoot: document.getElementById("most-used-foot")
+      favoriteApp: document.getElementById("favorite-app-value"),
+      favoriteAppFoot: document.getElementById("favorite-app-foot")
     };
 
     function setStatus(type, message) {
@@ -624,9 +624,9 @@
       profileFields.badgeFoot.textContent = String(user.badgeCount ?? badges.length) + " total badge";
       profileFields.tierV2.textContent = safeText(user.tierV2);
       profileFields.streamingFoot.textContent = "Streaming: " + (user.hasStreamingAccess ? "Yes" : "No");
-      profileFields.assetSummary.textContent = [user.avatar ? "Avatar" : null, user.banner ? "Banner" : null].filter(Boolean).join(" + ") || "-";
-      profileFields.avatarFoot.textContent = "Avatar: " + avatarText;
-      profileFields.bannerFoot.textContent = "Banner: " + bannerText;
+      profileFields.wojakTitle.textContent = safeText(user.wojak?.title, "UNRANKED");
+      profileFields.wojakScore.textContent = "Score: " + safeText(user.wojak?.score, "-");
+      profileFields.wojakReason.textContent = safeText(user.wojak?.reason, `Avatar ${avatarText} / Banner ${bannerText}`);
 
       profileCard.className = "panel profile-card visible";
     }
@@ -639,13 +639,13 @@
 
       metricFields.tx.textContent = formatNumber(payload.metrics.allTimeTx || 0, 0);
       metricFields.txFoot.textContent = "All-time";
-      metricFields.balance.textContent = safeText(payload.balance?.formatted, "0") + " ETH";
-      metricFields.balanceFoot.textContent = "Local dataset";
+      metricFields.fee.textContent = safeText(payload.metrics.totalFeeEth, "0") + " ETH";
+      metricFields.feeFoot.textContent = "30d: " + safeText(payload.metrics.fee30dEth, "0") + " ETH";
       metricFields.age.textContent = safeText(payload.metrics.walletAgeText, "-");
       metricFields.firstTxFoot.textContent = safeText(payload.metrics.firstTransactionAt, "-");
-      metricFields.mostUsed.textContent = safeText(payload.appSummary?.mostUsed?.name, "-");
-      metricFields.mostUsedFoot.textContent = payload.appSummary?.mostUsed?.txCount
-        ? formatNumber(payload.appSummary.mostUsed.txCount, 0) + " tx"
+      metricFields.favoriteApp.textContent = safeText(payload.profile?.favoriteApp || payload.favoriteAppSummary?.name || payload.appSummary?.mostUsed?.name, "-");
+      metricFields.favoriteAppFoot.textContent = payload.favoriteAppSummary?.txCount || payload.appSummary?.mostUsed?.txCount
+        ? formatNumber(payload.favoriteAppSummary?.txCount || payload.appSummary.mostUsed.txCount, 0) + " tx"
         : "-";
 
       metricsGrid.className = "metrics-grid visible";
