@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,12 +13,10 @@
       --text: #102118;
       --muted: #62786d;
       --green: #16cf73;
-      --green-deep: #0ea95d;
       --shadow: 0 26px 80px rgba(14, 35, 24, 0.12);
       --danger: #c94a69;
       --radius-xl: 32px;
       --radius-lg: 24px;
-      --radius-md: 18px;
       --max-width: 1040px;
     }
 
@@ -41,7 +39,61 @@
       min-height: 100vh;
       display: grid;
       align-content: center;
-      padding: 36px 0;
+      padding: 28px 0 36px;
+      gap: 18px;
+    }
+
+    .top-lane {
+      position: relative;
+      height: 92px;
+      overflow: hidden;
+      border: 1px solid rgba(27, 204, 118, 0.12);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.54);
+      backdrop-filter: blur(10px);
+    }
+
+    .runner-wrap {
+      position: absolute;
+      inset: 0;
+      animation: lane-move 6.5s linear infinite;
+    }
+
+    .runner-logo {
+      position: absolute;
+      top: 16px;
+      left: 0;
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      animation: logo-spin 2.4s linear infinite;
+      filter: drop-shadow(0 0 16px rgba(22, 207, 115, 0.38));
+    }
+
+    .runner-dog {
+      position: absolute;
+      top: 20px;
+      left: -76px;
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      animation: dog-bounce 0.45s ease-in-out infinite;
+    }
+
+    @keyframes lane-move {
+      from { transform: translateX(-120px); }
+      to { transform: translateX(calc(100vw + 120px)); }
+    }
+
+    @keyframes logo-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes dog-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
     }
 
     .search-shell {
@@ -129,11 +181,13 @@
     }
 
     .status.visible { display: block; }
+
     .status.loading {
       color: #2d5a49;
       background: rgba(244, 255, 248, 0.96);
       border-color: rgba(27, 204, 118, 0.16);
     }
+
     .status.error {
       color: var(--danger);
       background: rgba(255, 246, 248, 0.96);
@@ -157,7 +211,7 @@
 
     .summary-card {
       position: relative;
-      width: min(100%, 900px);
+      width: min(100%, 920px);
       border-radius: 36px;
       border: 1px solid var(--line-strong);
       background:
@@ -177,25 +231,33 @@
       border: 1px solid rgba(27, 204, 118, 0.14);
       background: rgba(243, 255, 248, 0.96);
       color: #177a49;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 800;
       box-shadow: none;
     }
 
-    .summary-body {
-      padding: 40px 34px 30px;
-      display: grid;
-      gap: 24px;
-      justify-items: center;
-      text-align: center;
+    .detail-link {
+      position: absolute;
+      top: 24px;
+      right: 84px;
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: #157749;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: underline;
+      height: auto;
+      box-shadow: none;
+      padding: 0;
     }
 
-    .summary-label {
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #5b786b;
+    .summary-body {
+      padding: 42px 34px 30px;
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+      text-align: center;
     }
 
     .summary-title {
@@ -214,30 +276,25 @@
       letter-spacing: -0.04em;
     }
 
-    .summary-subline {
+    .summary-wallet {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .summary-flavor {
       color: var(--muted);
       font-size: 15px;
       line-height: 1.7;
       max-width: 720px;
     }
 
-    .detail-link {
-      appearance: none;
-      border: none;
-      background: transparent;
-      color: #157749;
-      font-size: 14px;
-      font-weight: 800;
-      text-decoration: underline;
-      height: auto;
-      box-shadow: none;
-      padding: 0;
-    }
-
     .detail-panel {
       display: none;
       width: 100%;
-      margin-top: 4px;
+      margin-top: 10px;
       padding-top: 18px;
       border-top: 1px solid rgba(27, 204, 118, 0.1);
     }
@@ -295,18 +352,30 @@
       }
 
       .summary-body {
-        padding: 34px 20px 24px;
+        padding: 52px 20px 24px;
+      }
+
+      .detail-link {
+        top: 20px;
+        right: 76px;
       }
     }
   </style>
 </head>
 <body>
   <main class="page">
+    <div class="top-lane">
+      <div class="runner-wrap">
+        <img class="runner-logo" src="./assets/abstract-glow.png" alt="Abstract logo" />
+        <img class="runner-dog" src="./assets/kobetsu-pfp.png" alt="Running dog" />
+      </div>
+    </div>
+
     <section class="search-shell">
       <form id="search-form">
         <div class="search-row">
           <div class="input-wrap">
-            <input id="query-input" type="text" placeholder="wallet veya nickname" autocomplete="off" spellcheck="false" />
+            <input id="query-input" type="text" placeholder="Enter wallet or nickname" autocomplete="off" spellcheck="false" />
             <img src="./assets/abstract-glow.png" alt="Abstract" />
           </div>
           <button id="submit-button" type="submit">Search</button>
@@ -319,12 +388,13 @@
   <section id="overlay" class="overlay">
     <article class="summary-card">
       <button id="close-button" class="close-button" type="button">×</button>
+      <button id="detail-link" class="detail-link" type="button">View details</button>
+
       <div class="summary-body">
-        <div class="summary-label">Abstract Wojak Title</div>
         <h1 id="summary-title" class="summary-title">-</h1>
         <div id="summary-name" class="summary-name">-</div>
-        <div id="summary-subline" class="summary-subline">-</div>
-        <button id="detail-link" class="detail-link" type="button">Detaylari gor</button>
+        <div id="summary-wallet" class="summary-wallet">-</div>
+        <div id="summary-flavor" class="summary-flavor">-</div>
 
         <div id="detail-panel" class="detail-panel">
           <div class="detail-grid">
@@ -337,19 +407,19 @@
             <div class="detail-item">
               <div class="detail-key">Badge Count</div>
               <div id="detail-badges" class="detail-value">-</div>
-              <div class="detail-note">Toplam kazanilan badge</div>
+              <div class="detail-note">Claimed portal badges</div>
             </div>
 
             <div class="detail-item">
               <div class="detail-key">Transactions</div>
               <div id="detail-tx" class="detail-value">-</div>
-              <div class="detail-note">All-time</div>
+              <div class="detail-note">All-time onchain transactions</div>
             </div>
 
             <div class="detail-item">
-              <div class="detail-key">Fee Spent</div>
+              <div class="detail-key">Gas Fee Spent</div>
               <div id="detail-fee" class="detail-value">-</div>
-              <div class="detail-note">All-time chain fee</div>
+              <div class="detail-note">All-time gas paid by this wallet</div>
             </div>
 
             <div class="detail-item">
@@ -382,7 +452,8 @@
     const fields = {
       title: document.getElementById("summary-title"),
       name: document.getElementById("summary-name"),
-      subline: document.getElementById("summary-subline"),
+      wallet: document.getElementById("summary-wallet"),
+      flavor: document.getElementById("summary-flavor"),
       tier: document.getElementById("detail-tier"),
       tierNote: document.getElementById("detail-tier-note"),
       badges: document.getElementById("detail-badges"),
@@ -392,21 +463,6 @@
       ageNote: document.getElementById("detail-age-note"),
       app: document.getElementById("detail-app"),
       appNote: document.getElementById("detail-app-note")
-    };
-
-    const TIER_V2_MAP = {
-      1: "Bronze I",
-      2: "Bronze II",
-      3: "Bronze III",
-      4: "Silver I",
-      5: "Silver II",
-      6: "Silver III",
-      7: "Gold I",
-      8: "Gold II",
-      9: "Gold III",
-      10: "Diamond I",
-      11: "Diamond II",
-      12: "Diamond III"
     };
 
     function setStatus(type, message) {
@@ -421,7 +477,7 @@
 
     function setLoading(isLoading) {
       submitButton.disabled = isLoading;
-      submitButton.textContent = isLoading ? "Loading..." : "Search";
+      submitButton.textContent = isLoading ? "Scanning..." : "Search";
     }
 
     function formatNumber(value, digits = 0) {
@@ -434,35 +490,16 @@
       return value == null || value === "" ? fallback : String(value);
     }
 
-    function buildTierDisplay(profile) {
-      const activityTier = profile.tierName ? String(profile.tierName) : null;
-      const portalTier = profile.tierV2 != null ? TIER_V2_MAP[profile.tierV2] || `Tier ${profile.tierV2}` : null;
+    function formatDate(value) {
+      if (!value) return "-";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
 
-      if (activityTier && portalTier) {
-        return {
-          main: activityTier,
-          note: `Portal ${portalTier}`
-        };
-      }
-
-      if (portalTier) {
-        return {
-          main: portalTier,
-          note: "Portal ladder"
-        };
-      }
-
-      if (profile.tier != null) {
-        return {
-          main: `Tier ${profile.tier}`,
-          note: "Legacy profile tier"
-        };
-      }
-
-      return {
-        main: "-",
-        note: "-"
-      };
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      }).format(date);
     }
 
     function openOverlay() {
@@ -472,36 +509,38 @@
     function closeOverlay() {
       overlay.className = "overlay";
       detailPanel.className = "detail-panel";
-      detailLink.textContent = "Detaylari gor";
+      detailLink.textContent = "View details";
     }
 
     function toggleDetails() {
       const visible = detailPanel.classList.contains("visible");
       detailPanel.className = visible ? "detail-panel" : "detail-panel visible";
-      detailLink.textContent = visible ? "Detaylari gor" : "Detaylari gizle";
+      detailLink.textContent = visible ? "View details" : "Hide details";
     }
 
     function renderSummary(profilePayload, walletPayload) {
       const user = profilePayload.user || {};
-      const metrics = walletPayload?.metrics || {};
       const profile = walletPayload?.profile || user || {};
-      const persona = profile.wojak || walletPayload?.persona || {};
-      const tierDisplay = buildTierDisplay(profile);
-      const favoriteApp = profile.favoriteApp || walletPayload?.favoriteAppSummary?.name || walletPayload?.appSummary?.mostUsed?.name || "-";
-      const favoriteAppTx = walletPayload?.favoriteAppSummary?.txCount || walletPayload?.appSummary?.mostUsed?.txCount || null;
+      const metrics = walletPayload?.metrics || {};
+      const persona = walletPayload?.persona || profile.wojak || {};
+      const shortWallet = walletPayload?.privacy?.shortWallet || safeText(user.walletAddress || profile.walletAddress, "-");
+      const favoriteApp = walletPayload?.favoriteAppSummary?.name || profile.favoriteApp || "-";
+      const favoriteAppTx = walletPayload?.favoriteAppSummary?.txCount || null;
 
       fields.title.textContent = safeText(persona.title, "UNRANKED");
       fields.name.textContent = safeText(user.name || profile.name, "Unknown");
-      fields.subline.textContent = safeText(user.walletAddress || profile.walletAddress, "-");
-      fields.tier.textContent = tierDisplay.main;
-      fields.tierNote.textContent = tierDisplay.note;
-      fields.badges.textContent = safeText(profile.badgeCount, 0);
-      fields.tx.textContent = formatNumber(metrics.allTimeTx || 0, 0);
-      fields.fee.textContent = safeText(metrics.totalFeeEth, "0") + " ETH";
+      fields.wallet.textContent = shortWallet;
+      fields.flavor.textContent = safeText(persona.flavor, "A wallet profile shaped by onchain behavior.");
+
+      fields.tier.textContent = safeText(profile.displayTier || profile.tierName, "Unranked");
+      fields.tierNote.textContent = "Resolved from the Abstract portal tier ladder.";
+      fields.badges.textContent = formatNumber(Number(profile.badgeCount || 0), 0);
+      fields.tx.textContent = formatNumber(Number(metrics.allTimeTx || 0), 0);
+      fields.fee.textContent = `${safeText(metrics.totalFeeEth, "0")} ETH`;
       fields.age.textContent = safeText(metrics.walletAgeText, "-");
-      fields.ageNote.textContent = safeText(metrics.firstTransactionAt, "-");
+      fields.ageNote.textContent = `First activity: ${formatDate(metrics.firstTransactionAt)}`;
       fields.app.textContent = safeText(favoriteApp, "-");
-      fields.appNote.textContent = favoriteAppTx ? `${formatNumber(favoriteAppTx, 0)} tx` : "No app data";
+      fields.appNote.textContent = favoriteAppTx ? `${formatNumber(favoriteAppTx, 0)} transactions` : "Favorite app signal detected from onchain behavior.";
 
       openOverlay();
     }
@@ -511,7 +550,7 @@
       clearStatus();
 
       try {
-        setStatus("loading", "Title hesaplaniyor...");
+        setStatus("loading", "Scanning onchain profile...");
 
         const profileResponse = await fetch("/api/profile?query=" + encodeURIComponent(query));
         const profilePayload = await profileResponse.json();
@@ -526,15 +565,16 @@
         if (walletAddress) {
           const walletResponse = await fetch("/api/wallet?address=" + encodeURIComponent(walletAddress));
           const walletJson = await walletResponse.json();
-          if (walletResponse.ok) {
-            walletPayload = walletJson;
+          if (!walletResponse.ok) {
+            throw new Error(walletJson.error || "Wallet analysis failed.");
           }
+          walletPayload = walletJson;
         }
 
         renderSummary(profilePayload, walletPayload);
         clearStatus();
       } catch (error) {
-        setStatus("error", error.message || "Beklenmeyen bir hata olustu.");
+        setStatus("error", error.message || "Something went wrong.");
       } finally {
         setLoading(false);
       }
@@ -544,7 +584,7 @@
       event.preventDefault();
       const query = queryInput.value.trim();
       if (!query) {
-        setStatus("error", "Wallet veya nickname gir.");
+        setStatus("error", "Enter a wallet or nickname.");
         return;
       }
       analyze(query);
